@@ -1,3 +1,4 @@
+import "./pages.css";
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useSocket from '../hooks/useSocket';
@@ -67,19 +68,25 @@ const LobbyPage = () => {
     const storedName = sessionStorage.getItem('playerName');
     
     if (socket && isConnected && storedName) {
+      console.log('🔄 Lobby: Setting up socket listeners for', storedName);
+      console.log('🔌 Socket ID:', socket.id, 'Connected:', isConnected);
+      
       // Join lobby
       socket.emit('join-lobby', { name: storedName });
 
       // Listen for lobby events
       socket.on('lobby-joined', (data) => {
+        console.log('✅ Lobby joined, received rooms:', data.rooms.length);
         setRooms(data.rooms);
       });
 
       socket.on('room-list-updated', (updatedRooms) => {
+        console.log('🔄 Room list updated:', updatedRooms.length, 'rooms');
         setRooms(updatedRooms);
       });
 
       socket.on('player-list-updated', (updatedPlayers) => {
+        console.log('🔄 Player list updated:', updatedPlayers.length, 'players');
         setPlayers(updatedPlayers);
       });
 
@@ -134,7 +141,8 @@ const LobbyPage = () => {
 
   const checkRoomNameAvailability = async (name) => {
     try {
-      const response = await fetch('http://localhost:3001/api/check-room-name', {
+      const SERVER_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:3001';
+      const response = await fetch(`${SERVER_URL}/api/check-room-name`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -210,24 +218,24 @@ const LobbyPage = () => {
   return (
     <div className="lobby-container">
       <header className="lobby-header">
-        <h1>Game Lobby</h1>
-        <div className="connection-info">
-          <div className="socket-id">
-            Socket ID: {socket?.id || 'Not connected'}
-          </div>
-        </div>
-        <div className="player-info">
-          <span>Welcome, {playerName}!</span>
+        <div className="lobby-title">
+          <h1>Game Lobby</h1>
           <button onClick={handleLogout} className="logout-button">
             Logout
           </button>
         </div>
+        <div className="welcome-info">
+          <span className="welcome-message">Welcome, {playerName}!</span>
+          <span className="socket-id">
+            Socket ID: {socket?.id || 'Not connected'}
+          </span>
+        </div>
       </header>
 
       <div className="lobby-content">
-        <div className="rooms-section">
+        <div className="lobby-section">
           <div className="section-header">
-            <h2>Game Rooms</h2>
+            <h2 className="section-title">Game Rooms</h2>
             <button
               onClick={() => setShowCreateRoom(true)}
               className="create-room-button"
@@ -236,20 +244,35 @@ const LobbyPage = () => {
             </button>
           </div>
           
-          <RoomList rooms={rooms} onJoinRoom={handleJoinRoom} />
+          <div className="section-content">
+            <RoomList rooms={rooms} onJoinRoom={handleJoinRoom} />
+          </div>
         </div>
 
-        <div className="players-section">
-          <h2>Players Online</h2>
-          <PlayerList players={players} />
+        <div className="lobby-section">
+          <div className="section-header">
+            <h2 className="section-title">Players Online</h2>
+          </div>
+          <div className="section-content">
+            <PlayerList players={players} />
+          </div>
         </div>
       </div>
 
       {showCreateRoom && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Create New Room</h3>
-            <form onSubmit={handleCreateRoom}>
+        <div className="modal-overlay" onClick={() => setShowCreateRoom(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Create New Room</h3>
+              <button 
+                type="button" 
+                onClick={() => setShowCreateRoom(false)}
+                className="close-button"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleCreateRoom} className="modal-form">
               <div className="form-group">
                 <label htmlFor="roomName">Room Name:</label>
                 <input
@@ -277,14 +300,14 @@ const LobbyPage = () => {
                 </select>
               </div>
               
-              <div className="modal-buttons">
-                <button type="submit" className="create-button" disabled={isCreatingRoom}>
+              <div className="modal-actions">
+                <button type="submit" className="modal-button primary" disabled={isCreatingRoom}>
                   {isCreatingRoom ? 'Creating...' : 'Create Room'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateRoom(false)}
-                  className="cancel-button"
+                  className="modal-button secondary"
                 >
                   Cancel
                 </button>
@@ -293,194 +316,6 @@ const LobbyPage = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .lobby-container {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          padding: 20px;
-        }
-        
-        .loading {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          font-size: 18px;
-          color: white;
-        }
-        
-        .lobby-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: white;
-          padding: 20px;
-          border-radius: 10px;
-          margin-bottom: 20px;
-          box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .connection-info {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-        
-        .socket-id {
-          background: #f8f9fa;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-family: monospace;
-          font-size: 12px;
-          color: #666;
-          border: 1px solid #e9ecef;
-        }
-        
-        .lobby-header h1 {
-          margin: 0;
-          color: #333;
-        }
-        
-        .player-info {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-        }
-        
-        .logout-button {
-          padding: 8px 16px;
-          background: #e74c3c;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background 0.3s;
-        }
-        
-        .logout-button:hover {
-          background: #c0392b;
-        }
-        
-        .lobby-content {
-          display: grid;
-          grid-template-columns: 2fr 1fr;
-          gap: 20px;
-        }
-        
-        .rooms-section,
-        .players-section {
-          background: white;
-          padding: 20px;
-          border-radius: 10px;
-          box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .section-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        
-        .section-header h2,
-        .players-section h2 {
-          margin: 0 0 20px 0;
-          color: #333;
-        }
-        
-        .create-room-button {
-          padding: 10px 20px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: transform 0.2s;
-        }
-        
-        .create-room-button:hover {
-          transform: translateY(-2px);
-        }
-        
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        }
-        
-        .modal {
-          background: white;
-          padding: 30px;
-          border-radius: 10px;
-          width: 100%;
-          max-width: 400px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        
-        .modal h3 {
-          margin: 0 0 20px 0;
-          text-align: center;
-          color: #333;
-        }
-        
-        .form-group {
-          margin-bottom: 20px;
-        }
-        
-        .form-group label {
-          display: block;
-          margin-bottom: 8px;
-          color: #555;
-          font-weight: 500;
-        }
-        
-        .form-group input,
-        .form-group select {
-          width: 100%;
-          padding: 12px;
-          border: 2px solid #ddd;
-          border-radius: 5px;
-          font-size: 16px;
-        }
-        
-        .modal-buttons {
-          display: flex;
-          gap: 10px;
-          justify-content: flex-end;
-        }
-        
-        .create-button {
-          padding: 10px 20px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-        }
-        
-        .cancel-button {
-          padding: 10px 20px;
-          background: #95a5a6;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-        }
-        
-        @media (max-width: 768px) {
-          .lobby-content {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </div>
   );
 };

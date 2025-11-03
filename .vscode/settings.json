@@ -1,0 +1,42 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "typescript.suggest.autoImports": false,
+  "javascript.suggest.autoImports": false,
+  "typescript.validate.enable": true,
+  "javascript.validate.enable": true,
+  "typescript.preferences.quoteStyle": "double",
+  "javascript.preferences.quoteStyle": "double",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  },
+  "typescript.preferences.useLabelDetailsInCompletionEntries": true,
+  "typescript.suggest.completeFunctionCalls": true,
+  "javascript.suggest.completeFunctionCalls": true,
+  "typescript.workspaceSymbols.scope": "currentProject",
+  "typescript.surveys.enabled": false,
+  "typescript.disableAutomaticTypeAcquisition": false,
+  "typescript.npm": "npm",
+  "typescript.check.npmIsInstalled": true,
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/build": true,
+    "**/.vscode": false
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/build": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/build/**": true
+  },
+  "typescript.tsc.autoDetect": "on",
+  "javascript.referencesCodeLens.enabled": true,
+  "typescript.referencesCodeLens.enabled": true,
+  "javascript.referencesCodeLens.showOnAllFunctions": true,
+  "typescript.referencesCodeLens.showOnAllFunctions": true
+}

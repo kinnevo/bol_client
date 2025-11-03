@@ -97,6 +97,7 @@ export const clearWindowSession = () => {
 // Force logout other tabs in this window when someone new logs in
 export const forceLogoutOtherTabsInWindow = (newUserName) => {
   const windowId = getWindowId();
+  // eslint-disable-next-line no-unused-vars
   const tabId = getTabId();
   const currentSession = checkWindowSession();
   
@@ -140,6 +141,7 @@ export const setupWindowLogoutListener = (onForceLogout) => {
 // Heartbeat to keep session alive and maintain active tab status
 export const startWindowSessionHeartbeat = (userName) => {
   const windowId = getWindowId();
+  // eslint-disable-next-line no-unused-vars
   const tabId = getTabId();
   
   const heartbeat = () => {
