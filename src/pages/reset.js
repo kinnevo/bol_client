@@ -19,7 +19,12 @@ const ResetPage = () => {
   const handleResetServer = async () => {
     setIsResetting(true);
     try {
-      const response = await fetch('http://localhost:3001/admin/reset', {
+      const SERVER_URL = process.env.REACT_APP_SERVER_URL || 
+        (process.env.NODE_ENV === 'production' 
+          ? 'https://bolrailway-production.up.railway.app' 
+          : 'http://localhost:3001');
+      
+      const response = await fetch(`${SERVER_URL}/admin/reset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

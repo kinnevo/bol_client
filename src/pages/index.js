@@ -36,7 +36,12 @@ const LoginPage = () => {
 
   const checkNameAvailability = async (name) => {
     try {
-      const response = await fetch('http://localhost:3001/api/check-name', {
+      const SERVER_URL = process.env.REACT_APP_SERVER_URL || 
+        (process.env.NODE_ENV === 'production' 
+          ? 'https://bolrailway-production.up.railway.app' 
+          : 'http://localhost:3001');
+      
+      const response = await fetch(`${SERVER_URL}/api/check-name`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
