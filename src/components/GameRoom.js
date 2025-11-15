@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './GameRoom.css';
 
-const GameRoom = ({ room, gameState, playerName, onGameAction }) => {
+const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
   const [gameData, setGameData] = useState(null);
   const [message, setMessage] = useState('');
+  const [addingBot, setAddingBot] = useState(false);
 
   useEffect(() => {
     // Initialize game data based on room state
@@ -41,6 +42,24 @@ const GameRoom = ({ room, gameState, playerName, onGameAction }) => {
     }
   };
 
+  const handleAddBot = () => {
+    if (socket && room && !addingBot) {
+      setAddingBot(true);
+      socket.emit('add-bot', room.id);
+
+      // Reset after a delay
+      setTimeout(() => {
+        setAddingBot(false);
+      }, 1000);
+    }
+  };
+
+  const handleRemoveBot = (botId) => {
+    if (socket && room) {
+      socket.emit('remove-bot', { roomId: room.id, botId: botId });
+    }
+  };
+
   if (gameState === 'waiting') {
     return (
       <div className="game-room waiting">
@@ -51,20 +70,30 @@ const GameRoom = ({ room, gameState, playerName, onGameAction }) => {
           
           <div className="players-waiting">
             {room.players.map((playerId, index) => {
-              const playerName = room.playerNames ? 
-                room.playerNames.find(p => p.id === playerId)?.name || `Player ${index + 1}` :
-                `Player ${index + 1}`;
-              
+              const playerData = room.playerNames ?
+                room.playerNames.find(p => p.id === playerId) : null;
+              const playerName = playerData?.name || `Player ${index + 1}`;
+              const isBot = playerData?.isBot || false;
+
               return (
-                <div key={playerId} className="waiting-player">
+                <div key={playerId} className={`waiting-player ${isBot ? 'bot-player' : ''}`}>
                   <div className="player-avatar">
-                    {playerName.charAt(0).toUpperCase()}
+                    {isBot ? '🤖' : playerName.charAt(0).toUpperCase()}
                   </div>
                   <span>{playerName}</span>
+                  {isBot && (
+                    <button
+                      className="remove-bot-btn"
+                      onClick={() => handleRemoveBot(playerId)}
+                      title="Remove bot"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
               );
             })}
-            
+
             {/* Show empty slots */}
             {Array.from({ length: room.maxPlayers - room.players.length }).map((_, index) => (
               <div key={`empty-${index}`} className="waiting-player empty">
@@ -73,6 +102,22 @@ const GameRoom = ({ room, gameState, playerName, onGameAction }) => {
               </div>
             ))}
           </div>
+
+          {/* Add Bot Button */}
+          {room.players.length < room.maxPlayers && (
+            <div className="bot-controls">
+              <button
+                onClick={handleAddBot}
+                className="add-bot-button"
+                disabled={addingBot}
+              >
+                {addingBot ? 'Adding Bot...' : '🤖 Add Bot Player'}
+              </button>
+              <p className="bot-help-text">
+                Add bot players to fill the room and test the game!
+              </p>
+            </div>
+          )}
           
           {room.players.length >= 2 && (
             <div className="ready-message">

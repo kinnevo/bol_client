@@ -100,6 +100,84 @@
   font-weight: 500;
 }
 
+/* Bot Player Styles */
+.waiting-player.bot-player {
+  position: relative;
+  background: #f0f4ff;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px dashed #667eea;
+}
+
+.waiting-player.bot-player .player-avatar {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  font-size: 28px;
+}
+
+.remove-bot-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.8;
+}
+
+.remove-bot-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  background: #ee5a6f;
+}
+
+.bot-controls {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9ff;
+  border: 2px solid #e0e7ff;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.add-bot-button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px rgba(79, 172, 254, 0.3);
+}
+
+.add-bot-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(79, 172, 254, 0.4);
+}
+
+.add-bot-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bot-help-text {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+}
+
 /* Playing State Styles */
 .game-room.playing {
   padding: 20px;

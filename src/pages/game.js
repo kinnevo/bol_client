@@ -707,6 +707,7 @@ const GamePage = () => {
             room={room}
             gameState={gameState}
             playerName={playerName}
+            socket={socket}
             onGameAction={handleGameAction}
           />
         ) : (
