@@ -257,18 +257,6 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
 
     return (
       <div className="game-room playing">
-        <div className="game-header">
-          <div className="game-info">
-            <h3>Game in Progress</h3>
-            {currentPlayerInfo && (
-              <div className={`turn-info ${myTurn ? 'my-turn' : ''}`}>
-                {myTurn ? "🎯 Your Turn!" : `${currentPlayerInfo.name}'s Turn`}
-                {currentPlayerInfo.isBot && !myTurn && " 🤖"}
-              </div>
-            )}
-          </div>
-        </div>
-
         <div className="game-content">
           {/* Turn Order Display */}
           <div className="turn-order-panel">

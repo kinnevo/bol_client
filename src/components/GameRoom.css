@@ -530,6 +530,30 @@
   gap: 2vh;
   width: 100%;
   height: auto;
+  max-height: calc(100vh - 20vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar for game content */
+.game-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.game-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.game-content::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 3px;
+}
+
+.game-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(102, 126, 234, 0.5);
 }
 
 .game-board {
