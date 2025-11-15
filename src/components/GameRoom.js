@@ -25,7 +25,9 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
 
     // Listen for game started event with turn order
     const handleGameStarted = (data) => {
+      console.log('🎮 Game started event received:', data);
       if (data.turnOrder) {
+        console.log('Setting turn order:', data.turnOrder);
         setTurnOrder(data.turnOrder);
         setCurrentPlayerId(data.currentPlayerId);
         setDeckSize(data.deckSize || 0);
@@ -34,6 +36,7 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
 
     // Listen for card drawn event
     const handleCardDrawn = (data) => {
+      console.log('🃏 Card drawn:', data);
       setDrawnCard(data.card);
       setDeckSize(data.deckSize);
       setIsCardFlipped(false);
@@ -46,6 +49,7 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
 
     // Listen for turn changed event
     const handleTurnChanged = (data) => {
+      console.log('➡️ Turn changed:', data);
       setCurrentPlayerId(data.currentPlayerId);
       // Clear the drawn card when turn changes
       setDrawnCard(null);
@@ -62,6 +66,16 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
       socket.off('turn-changed', handleTurnChanged);
     };
   }, [socket]);
+
+  // Initialize turn order from room data if game is already playing
+  useEffect(() => {
+    if (room && gameState === 'playing' && room.turnOrder && turnOrder.length === 0) {
+      console.log('Initializing turn order from room data:', room.turnOrder);
+      setTurnOrder(room.turnOrder);
+      setCurrentPlayerId(room.currentPlayerId);
+      setDeckSize(room.deckSize || 0);
+    }
+  }, [room, gameState, turnOrder.length]);
 
   useEffect(() => {
     // Initialize game data based on room state

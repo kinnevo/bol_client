@@ -723,23 +723,13 @@ const GamePage = () => {
       </header>
 
       <div className="game-content">
-        {gameState === 'waiting' ? (
-          <GameRoom
-            room={room}
-            gameState={gameState}
-            playerName={playerName}
-            socket={socket}
-            onGameAction={handleGameAction}
-          />
-        ) : (
-          <ConversationGame
-            room={room}
-            gameState={gameState}
-            playerName={playerName}
-            socket={socket}
-            onGameAction={handleGameAction}
-          />
-        )}
+        <GameRoom
+          room={room}
+          gameState={gameState}
+          playerName={playerName}
+          socket={socket}
+          onGameAction={handleGameAction}
+        />
       </div>
 
     </div>
