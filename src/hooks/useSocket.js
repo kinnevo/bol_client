@@ -58,13 +58,37 @@ const createSocket = () => {
   socket.on('server-session', (data) => {
     const lastServerSession = localStorage.getItem('serverSessionId');
 
+    // If this is a reconnection, don't redirect
+    if (data.reconnected) {
+      console.log('✅ Reconnected to existing session');
+      localStorage.setItem('serverSessionId', data.sessionId);
+
+      // Store bot availability configuration
+      if (data.botsAvailable !== undefined) {
+        localStorage.setItem('botsAvailable', data.botsAvailable.toString());
+        console.log(`🤖 Bot players are ${data.botsAvailable ? 'ENABLED' : 'DISABLED'} on this server`);
+      }
+      return;
+    }
+
+    // Server restart detected - but session might be restored from Redis
     if (lastServerSession && lastServerSession !== data.sessionId) {
-      console.log('🔄 Server restart detected, clearing local data');
-      localStorage.removeItem('playerName');
-      localStorage.removeItem('currentRoom');
-      localStorage.removeItem('serverSessionId');
-      sessionStorage.clear(); // Clear session data too
-      window.location.href = '/?restart=true';
+      console.log('🔄 Server restart detected');
+
+      // Don't clear data immediately - wait to see if we get a reconnection event
+      localStorage.setItem('serverSessionId', data.sessionId);
+
+      // Give the server a moment to send reconnection data
+      setTimeout(() => {
+        // If we haven't been reconnected to a room, we can clear state
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/game/') && !currentPath.startsWith('/lobby')) {
+          console.log('No session restored, clearing local data');
+          localStorage.removeItem('playerName');
+          localStorage.removeItem('currentRoom');
+        }
+      }, 1000);
+
       return;
     }
 
@@ -74,6 +98,41 @@ const createSocket = () => {
     if (data.botsAvailable !== undefined) {
       localStorage.setItem('botsAvailable', data.botsAvailable.toString());
       console.log(`🤖 Bot players are ${data.botsAvailable ? 'ENABLED' : 'DISABLED'} on this server`);
+    }
+  });
+
+  // Handle successful reconnection to existing session
+  socket.on('reconnected', (data) => {
+    console.log('🎉 Successfully reconnected to session:', data);
+
+    // Update local storage with session data
+    if (data.playerName) {
+      localStorage.setItem('playerName', data.playerName);
+      sessionStorage.setItem('playerName', data.playerName);
+    }
+
+    if (data.room) {
+      localStorage.setItem('currentRoom', JSON.stringify({
+        id: data.room.id,
+        name: data.room.name,
+        isHost: data.room.hostId === data.playerId
+      }));
+
+      // Redirect to game page if not already there
+      const currentPath = window.location.pathname;
+      if (!currentPath.startsWith('/game/')) {
+        console.log('Redirecting to game room:', data.room.id);
+        window.location.href = `/game/${data.room.id}`;
+      } else {
+        // Already on game page, dispatch event to update state
+        window.dispatchEvent(new CustomEvent('session-restored', {
+          detail: {
+            room: data.room,
+            playerName: data.playerName,
+            playerId: data.playerId
+          }
+        }));
+      }
     }
   });
 

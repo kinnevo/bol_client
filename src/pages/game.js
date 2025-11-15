@@ -480,37 +480,58 @@ const GamePage = () => {
       clearBrowserSession();
       navigate('/?logout=true');
     });
-    
+
+    // Set up listener for session restoration
+    const handleSessionRestored = (event) => {
+      console.log('🎉 Session restored event received:', event.detail);
+      const { room: restoredRoom, playerName: restoredPlayerName } = event.detail;
+
+      if (restoredRoom) {
+        setRoom(restoredRoom);
+        setGameState(restoredRoom.status || 'waiting');
+      }
+
+      if (restoredPlayerName) {
+        setPlayerName(restoredPlayerName);
+        sessionStorage.setItem('playerName', restoredPlayerName);
+      }
+    };
+
+    window.addEventListener('session-restored', handleSessionRestored);
+
     // Check browser session first
     const currentSession = checkBrowserSession();
     if (!currentSession) {
       navigate('/');
       return;
     }
-    
+
     // Get player name from sessionStorage first (unique per tab), fallback to localStorage
     let storedName = sessionStorage.getItem('playerName');
     if (!storedName) {
       storedName = localStorage.getItem('playerName');
     }
-    
+
     if (!storedName) {
       navigate('/');
       return;
     }
-    
+
     // Verify the stored name matches the browser session
     if (currentSession.user !== storedName) {
       console.log('🚫 Session mismatch in game page. Browser session:', currentSession.user, 'Stored name:', storedName);
       navigate('/');
       return;
     }
-    
+
     // Store in sessionStorage for this tab
     sessionStorage.setItem('playerName', storedName);
     setPlayerName(storedName);
-    
-    return cleanupLogoutListener;
+
+    return () => {
+      cleanupLogoutListener();
+      window.removeEventListener('session-restored', handleSessionRestored);
+    };
   }, [navigate]);
 
   useEffect(() => {
