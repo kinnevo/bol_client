@@ -3,7 +3,7 @@ import './GameRoom.css';
 import Deck from './Deck';
 import Card from './Card';
 
-const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
+const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket }) => {
   const [gameData, setGameData] = useState(null);
   const [message, setMessage] = useState('');
   const [addingBot, setAddingBot] = useState(false);
@@ -165,8 +165,8 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
 
   // Helper to check if user is the room host/admin
   const isHost = () => {
-    if (!room || !socket) return false;
-    return room.hostId === socket.id;
+    if (!room || !playerId) return false;
+    return room.hostId === playerId;
   };
 
   // Handler for admin to draw card for bot
@@ -250,6 +250,17 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
     const myTurn = isMyTurn();
     const currentIsBot = isCurrentPlayerBot();
     const userIsHost = isHost();
+
+    // Debug logging for host detection
+    console.log('🔍 Debug Info:', {
+      socketId: socket?.id,
+      playerId: playerId,
+      roomHostId: room?.hostId,
+      userIsHost,
+      currentIsBot,
+      currentPlayerId,
+      shouldShowAdminControls: currentIsBot && userIsHost && !drawnCard
+    });
 
     return (
       <div className="game-room playing">

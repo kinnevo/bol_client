@@ -468,9 +468,10 @@ const GamePage = () => {
   const navigate = useNavigate();
   const [room, setRoom] = useState(null);
   const [playerName, setPlayerName] = useState('');
+  const [playerId, setPlayerId] = useState(null); // Add playerId state
   const [gameState, setGameState] = useState('waiting'); // waiting, playing, finished
   const [error, setError] = useState('');
-  
+
   const { socket, isConnected } = useSocket();
 
   useEffect(() => {
@@ -546,7 +547,13 @@ const GamePage = () => {
 
       // Listen for room events
       socket.on('room-joined', (roomData) => {
+        console.log('📥 Room joined data:', roomData);
         setRoom(roomData);
+        // Save the persistent player ID
+        if (roomData.playerId) {
+          setPlayerId(roomData.playerId);
+          console.log('💾 Saved player ID:', roomData.playerId);
+        }
         setGameState(roomData.status || 'waiting');
       });
 
@@ -727,6 +734,7 @@ const GamePage = () => {
           room={room}
           gameState={gameState}
           playerName={playerName}
+          playerId={playerId}
           socket={socket}
           onGameAction={handleGameAction}
         />
