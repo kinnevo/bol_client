@@ -1,5 +1,301 @@
 /* GameRoom Component Styles */
 
+/* Turn Order Panel */
+.turn-order-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.turn-order-panel h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.turn-order-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.turn-order-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.turn-order-item.current {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.turn-order-item.bot {
+  border-style: dashed;
+}
+
+.turn-number {
+  font-weight: bold;
+  font-size: 16px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.turn-player-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.current-badge {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Turn Info Header */
+.turn-info {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.turn-info.my-turn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.5);
+  }
+}
+
+/* Deck and Card Sections */
+.deck-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 450px;
+}
+
+.drawn-card-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 450px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.next-turn-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.next-turn-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+.next-turn-btn:active {
+  transform: translateY(0);
+}
+
+.game-instructions {
+  text-align: center;
+  padding: 30px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 12px;
+  border: 2px dashed rgba(102, 126, 234, 0.3);
+  margin: 20px auto;
+  max-width: 400px;
+}
+
+.game-instructions p {
+  margin: 0;
+  font-size: 18px;
+  color: #667eea;
+  font-weight: 500;
+}
+
+/* Bot Player Styles */
+.waiting-player.bot-player {
+  position: relative;
+}
+
+.remove-bot-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dc3545;
+  color: white;
+  border: 2px solid white;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.remove-bot-btn:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+.bot-controls {
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 12px;
+  border: 2px dashed rgba(102, 126, 234, 0.3);
+}
+
+.add-bot-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.add-bot-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.add-bot-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.bot-help-text {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Admin Bot Controls */
+.admin-bot-control {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+  text-align: center;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.admin-control-header {
+  margin-bottom: 15px;
+}
+
+.admin-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.admin-control-header p {
+  color: white;
+  margin: 10px 0 0 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.admin-draw-btn {
+  background: white;
+  color: #f5576c;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-draw-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.admin-draw-btn:active {
+  transform: translateY(0);
+}
+
+.game-instructions.bot-admin {
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+  border-color: rgba(245, 87, 108, 0.4);
+}
+
+.game-instructions.bot-admin p {
+  color: #f5576c;
+}
+
 /* Waiting State Styles */
 .game-room.waiting {
   padding: 40px;

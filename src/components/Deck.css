@@ -1,0 +1,256 @@
+.deck-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+}
+
+.deck {
+  position: relative;
+  width: 250px;
+  height: 350px;
+  cursor: not-allowed;
+  transition: transform 0.2s ease;
+}
+
+.deck.can-draw {
+  cursor: pointer;
+}
+
+.deck.can-draw:hover {
+  transform: translateY(-10px);
+}
+
+.deck.can-draw:hover .deck-stack {
+  box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+}
+
+.deck.disabled {
+  opacity: 0.6;
+  filter: grayscale(0.3);
+}
+
+.deck-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: box-shadow 0.2s ease;
+}
+
+.deck-card {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.deck-card-back {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 3px solid #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deck-card-pattern {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.deck-circle {
+  width: 120px;
+  height: 120px;
+  border: 4px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.deck-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: relative;
+  z-index: 1;
+}
+
+.deck-lines .line {
+  width: 100px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+}
+
+.deck-count {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border: 3px solid #667eea;
+}
+
+.count-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #667eea;
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 10px;
+  color: #764ba2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.deck-hint {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* Empty deck state */
+.deck.empty {
+  cursor: not-allowed;
+}
+
+.deck-empty-state {
+  width: 100%;
+  height: 100%;
+  border: 3px dashed #ccc;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.empty-icon {
+  font-size: 60px;
+  opacity: 0.3;
+}
+
+.empty-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Responsive sizing */
+@media (max-width: 768px) {
+  .deck {
+    width: 200px;
+    height: 280px;
+  }
+
+  .deck-circle {
+    width: 90px;
+    height: 90px;
+  }
+
+  .deck-lines .line {
+    width: 80px;
+  }
+
+  .deck-count {
+    width: 50px;
+    height: 50px;
+    bottom: 15px;
+    right: 15px;
+  }
+
+  .count-number {
+    font-size: 20px;
+  }
+
+  .count-label {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .deck {
+    width: 170px;
+    height: 238px;
+  }
+
+  .deck-circle {
+    width: 70px;
+    height: 70px;
+  }
+
+  .deck-lines .line {
+    width: 60px;
+    height: 2px;
+  }
+
+  .deck-count {
+    width: 45px;
+    height: 45px;
+    bottom: 12px;
+    right: 12px;
+  }
+
+  .count-number {
+    font-size: 18px;
+  }
+
+  .count-label {
+    font-size: 8px;
+  }
+
+  .deck-hint {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  .empty-icon {
+    font-size: 40px;
+  }
+
+  .empty-text {
+    font-size: 14px;
+  }
+}

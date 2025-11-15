@@ -1,17 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import './GameRoom.css';
+import Deck from './Deck';
+import Card from './Card';
 
 const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
   const [gameData, setGameData] = useState(null);
   const [message, setMessage] = useState('');
   const [addingBot, setAddingBot] = useState(false);
   const [botsAvailable, setBotsAvailable] = useState(false);
+  const [turnOrder, setTurnOrder] = useState([]);
+  const [currentPlayerId, setCurrentPlayerId] = useState(null);
+  const [deckSize, setDeckSize] = useState(0);
+  const [drawnCard, setDrawnCard] = useState(null);
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
 
   useEffect(() => {
     // Check if bots are available from localStorage
     const botsEnabled = localStorage.getItem('botsAvailable') === 'true';
     setBotsAvailable(botsEnabled);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    // Listen for game started event with turn order
+    const handleGameStarted = (data) => {
+      if (data.turnOrder) {
+        setTurnOrder(data.turnOrder);
+        setCurrentPlayerId(data.currentPlayerId);
+        setDeckSize(data.deckSize || 0);
+      }
+    };
+
+    // Listen for card drawn event
+    const handleCardDrawn = (data) => {
+      setDrawnCard(data.card);
+      setDeckSize(data.deckSize);
+      setIsCardFlipped(false);
+
+      // Auto-flip the card after a brief delay
+      setTimeout(() => {
+        setIsCardFlipped(true);
+      }, 300);
+    };
+
+    // Listen for turn changed event
+    const handleTurnChanged = (data) => {
+      setCurrentPlayerId(data.currentPlayerId);
+      // Clear the drawn card when turn changes
+      setDrawnCard(null);
+      setIsCardFlipped(false);
+    };
+
+    socket.on('game-started', handleGameStarted);
+    socket.on('card-drawn', handleCardDrawn);
+    socket.on('turn-changed', handleTurnChanged);
+
+    return () => {
+      socket.off('game-started', handleGameStarted);
+      socket.off('card-drawn', handleCardDrawn);
+      socket.off('turn-changed', handleTurnChanged);
+    };
+  }, [socket]);
 
   useEffect(() => {
     // Initialize game data based on room state
@@ -64,6 +114,51 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
   const handleRemoveBot = (botId) => {
     if (socket && room) {
       socket.emit('remove-bot', { roomId: room.id, botId: botId });
+    }
+  };
+
+  const handleDrawCard = () => {
+    if (socket && room) {
+      // Get the current player's ID from the socket
+      const playerId = socket.id;
+      socket.emit('draw-card', { roomId: room.id, playerId: playerId });
+    }
+  };
+
+  const handleNextTurn = () => {
+    if (socket && room) {
+      socket.emit('next-turn', { roomId: room.id });
+    }
+  };
+
+  // Helper to check if it's the current user's turn
+  const isMyTurn = () => {
+    if (!socket || !currentPlayerId) return false;
+    return socket.id === currentPlayerId;
+  };
+
+  // Helper to get current player info
+  const getCurrentPlayerInfo = () => {
+    if (!currentPlayerId) return null;
+    return turnOrder.find(p => p.id === currentPlayerId);
+  };
+
+  // Helper to check if the current player is a bot
+  const isCurrentPlayerBot = () => {
+    const currentPlayer = getCurrentPlayerInfo();
+    return currentPlayer?.isBot || false;
+  };
+
+  // Helper to check if user is the room host/admin
+  const isHost = () => {
+    if (!room || !socket) return false;
+    return room.hostId === socket.id;
+  };
+
+  // Handler for admin to draw card for bot
+  const handleDrawCardForBot = () => {
+    if (socket && room && isHost() && isCurrentPlayerBot()) {
+      socket.emit('draw-card', { roomId: room.id, playerId: currentPlayerId });
     }
   };
 
@@ -137,72 +232,132 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
   }
 
   if (gameState === 'playing') {
+    const currentPlayerInfo = getCurrentPlayerInfo();
+    const myTurn = isMyTurn();
+    const currentIsBot = isCurrentPlayerBot();
+    const userIsHost = isHost();
+
     return (
       <div className="game-room playing">
         <div className="game-header">
           <div className="game-info">
             <h3>Game in Progress</h3>
-            {gameData && (
-              <div className="turn-info">
-                Turn {gameData.turn} - {gameData.players[gameData.currentPlayer]?.name}'s turn
+            {currentPlayerInfo && (
+              <div className={`turn-info ${myTurn ? 'my-turn' : ''}`}>
+                {myTurn ? "🎯 Your Turn!" : `${currentPlayerInfo.name}'s Turn`}
+                {currentPlayerInfo.isBot && !myTurn && " 🤖"}
               </div>
             )}
           </div>
         </div>
-        
+
         <div className="game-content">
-          <div className="game-board">
-            <div className="board-placeholder">
-              <div className="board-icon">🎲</div>
-              <p>Game board will be implemented here</p>
-              <p>This is where the actual game mechanics will be displayed</p>
-            </div>
-          </div>
-          
-          <div className="game-sidebar">
-            <div className="players-panel">
-              <h4>Players</h4>
-              {gameData && gameData.players.map((player, index) => (
-                <div 
-                  key={player.id} 
-                  className={`player-card ${player.isActive ? 'active' : ''}`}
+          {/* Turn Order Display */}
+          <div className="turn-order-panel">
+            <h4>Turn Order</h4>
+            <div className="turn-order-list">
+              {turnOrder.map((player, index) => (
+                <div
+                  key={player.id}
+                  className={`turn-order-item ${player.id === currentPlayerId ? 'current' : ''} ${player.isBot ? 'bot' : ''}`}
                 >
-                  <div className="player-avatar small">
-                    {player.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="player-details">
-                    <div className="player-name">{player.name}</div>
-                    <div className="player-score">Score: {player.score}</div>
-                  </div>
-                  {player.isActive && <div className="active-indicator">🎯</div>}
+                  <span className="turn-number">{index + 1}</span>
+                  <span className="turn-player-name">
+                    {player.isBot && '🤖 '}{player.name}
+                  </span>
+                  {player.id === currentPlayerId && <span className="current-badge">Current</span>}
                 </div>
               ))}
             </div>
-            
-            <div className="actions-panel">
-              <h4>Game Actions</h4>
-              <div className="action-buttons">
-                <button 
-                  className="action-btn"
-                  onClick={() => handleAction('roll-dice')}
-                >
-                  🎲 Roll Dice
-                </button>
-                <button 
-                  className="action-btn"
-                  onClick={() => handleAction('pass-turn')}
-                >
-                  ⏭️ Pass Turn
-                </button>
-                <button 
-                  className="action-btn"
-                  onClick={() => handleAction('make-move')}
-                >
-                  🎯 Make Move
-                </button>
+          </div>
+
+          {/* Admin Controls for Bot Turn */}
+          {currentIsBot && userIsHost && !drawnCard && (
+            <div className="admin-bot-control">
+              <div className="admin-control-header">
+                <span className="admin-badge">👑 Admin Controls</span>
+                <p>Control bot player: {currentPlayerInfo.name}</p>
               </div>
+              <button
+                className="admin-draw-btn"
+                onClick={handleDrawCardForBot}
+              >
+                🃏 Draw Card for Bot
+              </button>
             </div>
-            
+          )}
+
+          <div className="game-board">
+            {/* Deck Section */}
+            <div className="deck-section">
+              <Deck
+                deckSize={deckSize}
+                onDrawCard={myTurn ? handleDrawCard : (currentIsBot && userIsHost ? handleDrawCardForBot : null)}
+                isPlayerTurn={(myTurn || (currentIsBot && userIsHost)) && !drawnCard}
+                disabled={(!myTurn && !(currentIsBot && userIsHost)) || drawnCard !== null}
+              />
+            </div>
+
+            {/* Drawn Card Display */}
+            {drawnCard && (
+              <div className="drawn-card-section">
+                <Card
+                  card={drawnCard}
+                  isFlipped={isCardFlipped}
+                  onFlipComplete={() => {}}
+                />
+                {isCardFlipped && (myTurn || (currentIsBot && userIsHost)) && (
+                  <div className="card-actions">
+                    <button
+                      className="next-turn-btn"
+                      onClick={handleNextTurn}
+                    >
+                      Next Turn ➡️
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Instructions */}
+            {!drawnCard && myTurn && (
+              <div className="game-instructions">
+                <p>🃏 Click the deck to draw a card!</p>
+              </div>
+            )}
+
+            {!drawnCard && currentIsBot && userIsHost && (
+              <div className="game-instructions bot-admin">
+                <p>🤖 You're controlling bot {currentPlayerInfo.name} - Click the deck to draw!</p>
+              </div>
+            )}
+
+            {!drawnCard && !myTurn && !(currentIsBot && userIsHost) && currentPlayerInfo && (
+              <div className="game-instructions">
+                <p>Waiting for {currentPlayerInfo.name} to draw a card...</p>
+              </div>
+            )}
+          </div>
+
+          <div className="game-sidebar">
+            <div className="players-panel">
+              <h4>Players</h4>
+              {turnOrder.map((player) => (
+                <div
+                  key={player.id}
+                  className={`player-card ${player.id === currentPlayerId ? 'active' : ''}`}
+                >
+                  <div className="player-avatar small">
+                    {player.isBot ? '🤖' : player.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="player-details">
+                    <div className="player-name">{player.name}</div>
+                  </div>
+                  {player.id === currentPlayerId && <div className="active-indicator">🎯</div>}
+                </div>
+              ))}
+            </div>
+
             <div className="chat-panel">
               <h4>Chat</h4>
               <div className="chat-messages">
