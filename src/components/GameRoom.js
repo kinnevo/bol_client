@@ -5,6 +5,13 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
   const [gameData, setGameData] = useState(null);
   const [message, setMessage] = useState('');
   const [addingBot, setAddingBot] = useState(false);
+  const [botsAvailable, setBotsAvailable] = useState(false);
+
+  useEffect(() => {
+    // Check if bots are available from localStorage
+    const botsEnabled = localStorage.getItem('botsAvailable') === 'true';
+    setBotsAvailable(botsEnabled);
+  }, []);
 
   useEffect(() => {
     // Initialize game data based on room state
@@ -13,10 +20,10 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
         currentPlayer: 0,
         turn: 1,
         players: room.players.map((playerId, index) => {
-          const playerName = room.playerNames ? 
+          const playerName = room.playerNames ?
             room.playerNames.find(p => p.id === playerId)?.name || `Player ${index + 1}` :
             `Player ${index + 1}`;
-          
+
           return {
             id: playerId,
             name: playerName,
@@ -103,8 +110,8 @@ const GameRoom = ({ room, gameState, playerName, onGameAction, socket }) => {
             ))}
           </div>
 
-          {/* Add Bot Button */}
-          {room.players.length < room.maxPlayers && (
+          {/* Add Bot Button - Only show if bots are available */}
+          {botsAvailable && room.players.length < room.maxPlayers && (
             <div className="bot-controls">
               <button
                 onClick={handleAddBot}

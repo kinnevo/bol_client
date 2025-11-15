@@ -57,7 +57,7 @@ const createSocket = () => {
   // Handle server session for restart detection
   socket.on('server-session', (data) => {
     const lastServerSession = localStorage.getItem('serverSessionId');
-    
+
     if (lastServerSession && lastServerSession !== data.sessionId) {
       console.log('🔄 Server restart detected, clearing local data');
       localStorage.removeItem('playerName');
@@ -67,8 +67,14 @@ const createSocket = () => {
       window.location.href = '/?restart=true';
       return;
     }
-    
+
     localStorage.setItem('serverSessionId', data.sessionId);
+
+    // Store bot availability configuration
+    if (data.botsAvailable !== undefined) {
+      localStorage.setItem('botsAvailable', data.botsAvailable.toString());
+      console.log(`🤖 Bot players are ${data.botsAvailable ? 'ENABLED' : 'DISABLED'} on this server`);
+    }
   });
 
   // Handle server reset
