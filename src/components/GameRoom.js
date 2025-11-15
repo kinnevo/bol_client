@@ -132,9 +132,8 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   };
 
   const handleDrawCard = () => {
-    if (socket && room) {
-      // Get the current player's ID from the socket
-      const playerId = socket.id;
+    if (socket && room && playerId) {
+      // Use the persistent player ID instead of socket.id
       socket.emit('draw-card', { roomId: room.id, playerId: playerId });
     }
   };
@@ -147,8 +146,13 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
 
   // Helper to check if it's the current user's turn
   const isMyTurn = () => {
-    if (!socket || !currentPlayerId) return false;
-    return socket.id === currentPlayerId;
+    if (!playerId || !currentPlayerId) {
+      console.log('🔍 isMyTurn check:', { playerId, currentPlayerId, result: false });
+      return false;
+    }
+    const result = playerId === currentPlayerId;
+    console.log('🔍 isMyTurn check:', { playerId, currentPlayerId, result });
+    return result;
   };
 
   // Helper to get current player info
@@ -250,17 +254,6 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     const myTurn = isMyTurn();
     const currentIsBot = isCurrentPlayerBot();
     const userIsHost = isHost();
-
-    // Debug logging for host detection
-    console.log('🔍 Debug Info:', {
-      socketId: socket?.id,
-      playerId: playerId,
-      roomHostId: room?.hostId,
-      userIsHost,
-      currentIsBot,
-      currentPlayerId,
-      shouldShowAdminControls: currentIsBot && userIsHost && !drawnCard
-    });
 
     return (
       <div className="game-room playing">
@@ -365,24 +358,6 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
           </div>
 
           <div className="game-sidebar">
-            <div className="players-panel">
-              <h4>Players</h4>
-              {turnOrder.map((player) => (
-                <div
-                  key={player.id}
-                  className={`player-card ${player.id === currentPlayerId ? 'active' : ''}`}
-                >
-                  <div className="player-avatar small">
-                    {player.isBot ? '🤖' : player.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="player-details">
-                    <div className="player-name">{player.name}</div>
-                  </div>
-                  {player.id === currentPlayerId && <div className="active-indicator">🎯</div>}
-                </div>
-              ))}
-            </div>
-
             <div className="chat-panel">
               <h4>Chat</h4>
               <div className="chat-messages">
