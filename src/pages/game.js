@@ -468,9 +468,10 @@ const GamePage = () => {
   const navigate = useNavigate();
   const [room, setRoom] = useState(null);
   const [playerName, setPlayerName] = useState('');
+  const [playerId, setPlayerId] = useState(null); // Add playerId state
   const [gameState, setGameState] = useState('waiting'); // waiting, playing, finished
   const [error, setError] = useState('');
-  
+
   const { socket, isConnected } = useSocket();
 
   useEffect(() => {
@@ -480,37 +481,58 @@ const GamePage = () => {
       clearBrowserSession();
       navigate('/?logout=true');
     });
-    
+
+    // Set up listener for session restoration
+    const handleSessionRestored = (event) => {
+      console.log('🎉 Session restored event received:', event.detail);
+      const { room: restoredRoom, playerName: restoredPlayerName } = event.detail;
+
+      if (restoredRoom) {
+        setRoom(restoredRoom);
+        setGameState(restoredRoom.status || 'waiting');
+      }
+
+      if (restoredPlayerName) {
+        setPlayerName(restoredPlayerName);
+        sessionStorage.setItem('playerName', restoredPlayerName);
+      }
+    };
+
+    window.addEventListener('session-restored', handleSessionRestored);
+
     // Check browser session first
     const currentSession = checkBrowserSession();
     if (!currentSession) {
       navigate('/');
       return;
     }
-    
+
     // Get player name from sessionStorage first (unique per tab), fallback to localStorage
     let storedName = sessionStorage.getItem('playerName');
     if (!storedName) {
       storedName = localStorage.getItem('playerName');
     }
-    
+
     if (!storedName) {
       navigate('/');
       return;
     }
-    
+
     // Verify the stored name matches the browser session
     if (currentSession.user !== storedName) {
       console.log('🚫 Session mismatch in game page. Browser session:', currentSession.user, 'Stored name:', storedName);
       navigate('/');
       return;
     }
-    
+
     // Store in sessionStorage for this tab
     sessionStorage.setItem('playerName', storedName);
     setPlayerName(storedName);
-    
-    return cleanupLogoutListener;
+
+    return () => {
+      cleanupLogoutListener();
+      window.removeEventListener('session-restored', handleSessionRestored);
+    };
   }, [navigate]);
 
   useEffect(() => {
@@ -525,7 +547,13 @@ const GamePage = () => {
 
       // Listen for room events
       socket.on('room-joined', (roomData) => {
+        console.log('📥 Room joined data:', roomData);
         setRoom(roomData);
+        // Save the persistent player ID
+        if (roomData.playerId) {
+          setPlayerId(roomData.playerId);
+          console.log('💾 Saved player ID:', roomData.playerId);
+        }
         setGameState(roomData.status || 'waiting');
       });
 
@@ -702,22 +730,14 @@ const GamePage = () => {
       </header>
 
       <div className="game-content">
-        {gameState === 'waiting' ? (
-          <GameRoom
-            room={room}
-            gameState={gameState}
-            playerName={playerName}
-            onGameAction={handleGameAction}
-          />
-        ) : (
-          <ConversationGame
-            room={room}
-            gameState={gameState}
-            playerName={playerName}
-            socket={socket}
-            onGameAction={handleGameAction}
-          />
-        )}
+        <GameRoom
+          room={room}
+          gameState={gameState}
+          playerName={playerName}
+          playerId={playerId}
+          socket={socket}
+          onGameAction={handleGameAction}
+        />
       </div>
 
     </div>
