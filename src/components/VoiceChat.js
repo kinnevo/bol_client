@@ -13,6 +13,42 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
   const [participants, setParticipants] = useState({});
   const [error, setError] = useState(null);
 
+  // Event handlers defined before useEffect to avoid dependency warnings
+  const handleJoinedMeeting = useCallback((event, frame) => {
+    console.log('[VoiceChat] Joined meeting:', event);
+    setIsJoined(true);
+
+    // Get initial participants
+    if (frame) {
+      const allParticipants = frame.participants();
+      setParticipants(allParticipants);
+    }
+  }, []);
+
+  const handleParticipantUpdate = useCallback((event, frame) => {
+    console.log('[VoiceChat] Participant updated:', event);
+
+    if (frame) {
+      const allParticipants = frame.participants();
+      setParticipants(allParticipants);
+    }
+  }, []);
+
+  const handleParticipantLeft = useCallback((event, frame) => {
+    console.log('[VoiceChat] Participant left:', event);
+
+    if (frame) {
+      const allParticipants = frame.participants();
+      setParticipants(allParticipants);
+    }
+  }, []);
+
+  const handleError = useCallback((error) => {
+    console.error('[VoiceChat] Daily error:', error);
+    setError(error.errorMsg || 'Voice chat error');
+    if (onError) onError(error);
+  }, [onError]);
+
   // Initialize Daily call frame
   useEffect(() => {
     if (!roomUrl) {
@@ -37,12 +73,12 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
 
     setCallFrame(frame);
 
-    // Set up event listeners
+    // Set up event listeners with frame passed as second argument
     frame
-      .on('joined-meeting', handleJoinedMeeting)
-      .on('participant-joined', handleParticipantUpdate)
-      .on('participant-updated', handleParticipantUpdate)
-      .on('participant-left', handleParticipantLeft)
+      .on('joined-meeting', (event) => handleJoinedMeeting(event, frame))
+      .on('participant-joined', (event) => handleParticipantUpdate(event, frame))
+      .on('participant-updated', (event) => handleParticipantUpdate(event, frame))
+      .on('participant-left', (event) => handleParticipantLeft(event, frame))
       .on('error', handleError);
 
     // Join the room
@@ -73,42 +109,7 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
         });
       }
     };
-  }, [roomUrl, playerName, playerId, onError]);
-
-  const handleJoinedMeeting = useCallback((event) => {
-    console.log('[VoiceChat] Joined meeting:', event);
-    setIsJoined(true);
-
-    // Get initial participants
-    if (callFrame) {
-      const allParticipants = callFrame.participants();
-      setParticipants(allParticipants);
-    }
-  }, [callFrame]);
-
-  const handleParticipantUpdate = useCallback((event) => {
-    console.log('[VoiceChat] Participant updated:', event);
-
-    if (callFrame) {
-      const allParticipants = callFrame.participants();
-      setParticipants(allParticipants);
-    }
-  }, [callFrame]);
-
-  const handleParticipantLeft = useCallback((event) => {
-    console.log('[VoiceChat] Participant left:', event);
-
-    if (callFrame) {
-      const allParticipants = callFrame.participants();
-      setParticipants(allParticipants);
-    }
-  }, [callFrame]);
-
-  const handleError = useCallback((error) => {
-    console.error('[VoiceChat] Daily error:', error);
-    setError(error.errorMsg || 'Voice chat error');
-    if (onError) onError(error);
-  }, [onError]);
+  }, [roomUrl, playerName, playerId, onError, handleJoinedMeeting, handleParticipantUpdate, handleParticipantLeft, handleError]);
 
   // Toggle mute/unmute
   const toggleMute = useCallback(() => {
@@ -119,23 +120,6 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
     setIsMuted(newMutedState);
     console.log(`[VoiceChat] ${newMutedState ? 'Muted' : 'Unmuted'} microphone`);
   }, [callFrame, isMuted]);
-
-  // Leave voice chat
-  const leaveVoiceChat = useCallback(() => {
-    if (callFrame) {
-      callFrame.leave().then(() => {
-        console.log('[VoiceChat] Left voice chat');
-        setIsJoined(false);
-      });
-    }
-  }, [callFrame]);
-
-  // Get list of active speakers
-  const getActiveSpeakers = () => {
-    return Object.entries(participants)
-      .filter(([id, p]) => p.audio && !p.local)
-      .map(([id, p]) => p.user_name || 'Unknown');
-  };
 
   if (error) {
     return (
@@ -162,9 +146,9 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
           className={`voice-chat-button ${isMuted ? 'muted' : 'unmuted'}`}
           onClick={toggleMute}
           disabled={!isJoined}
-          title={isMuted ? 'Unmute' : 'Mute'}
+          title={isMuted ? 'Click to unmute' : 'Click to mute'}
         >
-          {isMuted ? '🔇 Unmuted' : '🔊 Mute'}
+          {isMuted ? '🔇 Muted' : '🔊 Unmute'}
         </button>
       </div>
 
