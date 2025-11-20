@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import LoginPage from './pages/index';
+import RegisterPage from './pages/Register';
 import LobbyPage from './pages/lobby';
 import GamePage from './pages/game';
 import ResetPage from './pages/reset';
@@ -13,6 +14,7 @@ root.render(
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/lobby" element={<LobbyPage />} />
         <Route path="/game/:roomId" element={<GamePage />} />
         <Route path="/reset" element={<ResetPage />} />

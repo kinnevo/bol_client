@@ -58,6 +58,13 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
 
     console.log('[VoiceChat] Initializing Daily.co with room:', roomUrl);
 
+    // Prevent duplicate instances - destroy any existing frames first
+    const existingFrame = DailyIframe.getCallInstance();
+    if (existingFrame) {
+      console.log('[VoiceChat] Destroying existing frame before creating new one');
+      existingFrame.destroy();
+    }
+
     // Create Daily call frame
     const frame = DailyIframe.createFrame({
       iframeStyle: {
@@ -103,10 +110,21 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
     // Cleanup on unmount
     return () => {
       if (frame) {
-        frame.leave().then(() => {
-          frame.destroy();
-          console.log('[VoiceChat] Left and destroyed call frame');
-        });
+        console.log('[VoiceChat] Cleaning up call frame');
+        frame.leave()
+          .then(() => {
+            frame.destroy();
+            console.log('[VoiceChat] Left and destroyed call frame');
+          })
+          .catch((err) => {
+            console.warn('[VoiceChat] Error during cleanup:', err);
+            // Destroy anyway even if leave fails
+            try {
+              frame.destroy();
+            } catch (destroyErr) {
+              console.warn('[VoiceChat] Error destroying frame:', destroyErr);
+            }
+          });
       }
     };
   }, [roomUrl, playerName, playerId, onError, handleJoinedMeeting, handleParticipantUpdate, handleParticipantLeft, handleError]);
