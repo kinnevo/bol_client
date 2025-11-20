@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './GameRoom.css';
 import Deck from './Deck';
 import Card from './Card';
+import VoiceChat from './VoiceChat';
 
 const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket }) => {
   const [gameData, setGameData] = useState(null);
@@ -13,6 +14,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const [deckSize, setDeckSize] = useState(0);
   const [drawnCard, setDrawnCard] = useState(null);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [voiceChatUrl, setVoiceChatUrl] = useState(null);
 
   useEffect(() => {
     // Check if bots are available from localStorage
@@ -31,6 +33,12 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
         setTurnOrder(data.turnOrder);
         setCurrentPlayerId(data.currentPlayerId);
         setDeckSize(data.deckSize || 0);
+      }
+
+      // Set voice chat URL if available
+      if (data.voiceChat && data.voiceChat.url) {
+        console.log('🎙️ Voice chat URL received:', data.voiceChat.url);
+        setVoiceChatUrl(data.voiceChat.url);
       }
     };
 
@@ -258,6 +266,16 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     return (
       <div className="game-room playing">
         <div className="game-content">
+          {/* Voice Chat Component */}
+          {voiceChatUrl && (
+            <VoiceChat
+              roomUrl={voiceChatUrl}
+              playerName={playerName}
+              playerId={playerId}
+              onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
+            />
+          )}
+
           {/* Turn Order Display */}
           <div className="turn-order-panel">
             <h4>Turn Order</h4>

@@ -1,0 +1,158 @@
+.voice-chat-container {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.voice-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.voice-chat-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.voice-chat-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.voice-chat-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voice-chat-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voice-chat-button.unmuted {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.voice-chat-button.unmuted:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+}
+
+.voice-chat-button.muted {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.voice-chat-button.muted:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(245, 87, 108, 0.4);
+}
+
+.voice-chat-participants {
+  margin-top: 12px;
+}
+
+.participant-count {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.participant {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.participant.local {
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.participant.speaking {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.participant.muted {
+  opacity: 0.7;
+}
+
+.participant-icon {
+  font-size: 16px;
+}
+
+.participant-name {
+  font-size: 14px;
+  color: #fff;
+  flex: 1;
+}
+
+.voice-chat-error {
+  background: rgba(245, 87, 108, 0.1);
+  border: 1px solid rgba(245, 87, 108, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  color: #f5576c;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(102, 126, 234, 0);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .voice-chat-container {
+    margin: 12px 0;
+    padding: 12px;
+  }
+
+  .voice-chat-title {
+    font-size: 14px;
+  }
+
+  .voice-chat-button {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .participant-name {
+    font-size: 12px;
+  }
+}
