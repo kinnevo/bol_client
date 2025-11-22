@@ -7,7 +7,6 @@ import './VoiceChat.css';
  * Manages Daily.co voice chat integration for the game
  */
 const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
-  const [callFrame, setCallFrame] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
   const [participants, setParticipants] = useState({});
@@ -17,7 +16,6 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
   // Use ref to track if we're currently cleaning up to prevent re-initialization
   const isCleaningUpRef = useRef(false);
   const frameRef = useRef(null);
-  const audioObserverStartedRef = useRef(false); // Track if audio observer is already started
 
   // Initialize Daily call frame
   useEffect(() => {
@@ -55,7 +53,6 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
     });
 
     frameRef.current = frame;
-    setCallFrame(frame);
 
     // Event handlers - defined inline to avoid dependency issues
     const handleJoinedMeeting = (event) => {
@@ -180,7 +177,6 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
           })
           .finally(() => {
             frameRef.current = null;
-            audioObserverStartedRef.current = false; // Reset for reconnection
             isCleaningUpRef.current = false;
           });
       } else {
