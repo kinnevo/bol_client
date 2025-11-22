@@ -64,11 +64,22 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
       if (frameRef.current) {
         const allParticipants = frameRef.current.participants();
         setParticipants(allParticipants);
+        console.log('[VoiceChat] Initial participants:', Object.keys(allParticipants).length);
       }
     };
 
     const handleParticipantUpdate = (event) => {
       console.log('[VoiceChat] Participant updated:', event);
+
+      // If we're receiving participant updates, we must be joined
+      // Use functional setState to get the current state value
+      setIsJoined(currentIsJoined => {
+        if (!currentIsJoined) {
+          console.log('[VoiceChat] Setting isJoined=true from participant update');
+          return true;
+        }
+        return currentIsJoined;
+      });
 
       if (frameRef.current) {
         const allParticipants = frameRef.current.participants();
@@ -111,6 +122,8 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
 
         // Enable microphone by default
         frameRef.current.setLocalAudio(true);
+        setIsMuted(false); // Start unmuted
+        console.log('[VoiceChat] Microphone enabled by default');
 
         setIsJoined(true);
       })
@@ -200,7 +213,7 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
           disabled={!isJoined}
           title={isMuted ? 'Click to unmute' : 'Click to mute'}
         >
-          {isMuted ? '🔇 Muted' : '🔊 Unmute'}
+          {isMuted ? '🔇 Unmute' : '🔊 Mute'}
         </button>
       </div>
 
