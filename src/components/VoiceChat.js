@@ -11,11 +11,13 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
   const [participants, setParticipants] = useState({});
+  const [activeSpeakers, setActiveSpeakers] = useState(new Set()); // Track who's actively speaking
   const [error, setError] = useState(null);
 
   // Use ref to track if we're currently cleaning up to prevent re-initialization
   const isCleaningUpRef = useRef(false);
   const frameRef = useRef(null);
+  const audioObserverStartedRef = useRef(false); // Track if audio observer is already started
 
   // Initialize Daily call frame
   useEffect(() => {
@@ -65,17 +67,41 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
         const allParticipants = frameRef.current.participants();
         setParticipants(allParticipants);
         console.log('[VoiceChat] Initial participants:', Object.keys(allParticipants).length);
+
+        // Start audio level observer for active speaker detection
+        if (!audioObserverStartedRef.current) {
+          try {
+            frameRef.current.startAudioLevelObserver(100);
+            audioObserverStartedRef.current = true;
+            console.log('[VoiceChat] Audio level observer started from joined-meeting');
+          } catch (err) {
+            console.warn('[VoiceChat] Could not start audio level observer:', err);
+          }
+        }
       }
     };
 
     const handleParticipantUpdate = (event) => {
       console.log('[VoiceChat] Participant updated:', event);
+      console.log('[VoiceChat] Participant audio state:', event.participant?.audio);
 
       // If we're receiving participant updates, we must be joined
       // Use functional setState to get the current state value
       setIsJoined(currentIsJoined => {
         if (!currentIsJoined) {
           console.log('[VoiceChat] Setting isJoined=true from participant update');
+
+          // Start audio observer when we detect we're joined
+          if (frameRef.current && !audioObserverStartedRef.current) {
+            try {
+              frameRef.current.startAudioLevelObserver(100);
+              audioObserverStartedRef.current = true;
+              console.log('[VoiceChat] Audio level observer started from participant update');
+            } catch (err) {
+              console.warn('[VoiceChat] Could not start audio level observer:', err);
+            }
+          }
+
           return true;
         }
         return currentIsJoined;
@@ -83,6 +109,7 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
 
       if (frameRef.current) {
         const allParticipants = frameRef.current.participants();
+        console.log('[VoiceChat] All participants:', allParticipants);
         setParticipants(allParticipants);
       }
     };
@@ -102,12 +129,30 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
       if (onError) onError(error);
     };
 
+    const handleActiveSpeakerChange = (event) => {
+      console.log('[VoiceChat] Active speaker changed:', event);
+      if (event.activeSpeaker && event.activeSpeaker.peerId) {
+        // Add the active speaker to the set
+        setActiveSpeakers(prev => new Set(prev).add(event.activeSpeaker.peerId));
+
+        // Remove them after a short delay if they stop speaking
+        setTimeout(() => {
+          setActiveSpeakers(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(event.activeSpeaker.peerId);
+            return newSet;
+          });
+        }, 1500); // Keep the pulse for 1.5 seconds after speaking
+      }
+    };
+
     // Set up event listeners
     frame
       .on('joined-meeting', handleJoinedMeeting)
       .on('participant-joined', handleParticipantUpdate)
       .on('participant-updated', handleParticipantUpdate)
       .on('participant-left', handleParticipantLeft)
+      .on('active-speaker-change', handleActiveSpeakerChange)
       .on('error', handleError);
 
     // Join the room with only supported Daily.co properties
@@ -122,8 +167,22 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
 
         // Enable microphone by default
         frameRef.current.setLocalAudio(true);
-        setIsMuted(false); // Start unmuted
         console.log('[VoiceChat] Microphone enabled by default');
+
+        // Set initial muted state based on audio being enabled
+        setIsMuted(false); // We just enabled audio, so we're not muted
+
+        // Enable audio level monitoring for active speaker detection
+        setTimeout(() => {
+          try {
+            if (frameRef.current) {
+              frameRef.current.startAudioLevelObserver(100); // Check every 100ms
+              console.log('[VoiceChat] Audio level observer started');
+            }
+          } catch (err) {
+            console.warn('[VoiceChat] Could not start audio level observer:', err);
+          }
+        }, 500); // Small delay to ensure everything is initialized
 
         setIsJoined(true);
       })
@@ -156,6 +215,7 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
           })
           .finally(() => {
             frameRef.current = null;
+            audioObserverStartedRef.current = false; // Reset for reconnection
             isCleaningUpRef.current = false;
           });
       } else {
@@ -226,11 +286,10 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
           {Object.entries(participants).map(([id, participant]) => (
             <div
               key={id}
-              className={`participant ${participant.local ? 'local' : ''} ${!participant.audio ? 'speaking' : 'muted'
-                }`}
+              className={`participant ${participant.local ? 'local' : ''} ${activeSpeakers.has(id) ? 'speaking' : ''} ${participant.audio ? '' : 'muted'}`}
             >
               <span className="participant-icon">
-                {participant.audio ? '🎤' : '🔇'}
+                {!participant.audio ? '🎤' : '🔇'}
               </span>
               <span className="participant-name">
                 {participant.user_name || 'Unknown'}
