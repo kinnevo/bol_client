@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import DailyIframe from '@daily-co/daily-js';
 import './VoiceChat.css';
 
@@ -13,46 +13,20 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
   const [participants, setParticipants] = useState({});
   const [error, setError] = useState(null);
 
-  // Event handlers defined before useEffect to avoid dependency warnings
-  const handleJoinedMeeting = useCallback((event, frame) => {
-    console.log('[VoiceChat] Joined meeting:', event);
-    setIsJoined(true);
-
-    // Get initial participants
-    if (frame) {
-      const allParticipants = frame.participants();
-      setParticipants(allParticipants);
-    }
-  }, []);
-
-  const handleParticipantUpdate = useCallback((event, frame) => {
-    console.log('[VoiceChat] Participant updated:', event);
-
-    if (frame) {
-      const allParticipants = frame.participants();
-      setParticipants(allParticipants);
-    }
-  }, []);
-
-  const handleParticipantLeft = useCallback((event, frame) => {
-    console.log('[VoiceChat] Participant left:', event);
-
-    if (frame) {
-      const allParticipants = frame.participants();
-      setParticipants(allParticipants);
-    }
-  }, []);
-
-  const handleError = useCallback((error) => {
-    console.error('[VoiceChat] Daily error:', error);
-    setError(error.errorMsg || 'Voice chat error');
-    if (onError) onError(error);
-  }, [onError]);
+  // Use ref to track if we're currently cleaning up to prevent re-initialization
+  const isCleaningUpRef = useRef(false);
+  const frameRef = useRef(null);
 
   // Initialize Daily call frame
   useEffect(() => {
     if (!roomUrl) {
       console.log('[VoiceChat] No room URL provided');
+      return;
+    }
+
+    // Prevent re-initialization if cleanup is in progress
+    if (isCleaningUpRef.current) {
+      console.log('[VoiceChat] Cleanup in progress, skipping initialization');
       return;
     }
 
@@ -78,14 +52,51 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
       showFullscreenButton: false,
     });
 
+    frameRef.current = frame;
     setCallFrame(frame);
 
-    // Set up event listeners with frame passed as second argument
+    // Event handlers - defined inline to avoid dependency issues
+    const handleJoinedMeeting = (event) => {
+      console.log('[VoiceChat] Joined meeting:', event);
+      setIsJoined(true);
+
+      // Get initial participants
+      if (frameRef.current) {
+        const allParticipants = frameRef.current.participants();
+        setParticipants(allParticipants);
+      }
+    };
+
+    const handleParticipantUpdate = (event) => {
+      console.log('[VoiceChat] Participant updated:', event);
+
+      if (frameRef.current) {
+        const allParticipants = frameRef.current.participants();
+        setParticipants(allParticipants);
+      }
+    };
+
+    const handleParticipantLeft = (event) => {
+      console.log('[VoiceChat] Participant left:', event);
+
+      if (frameRef.current) {
+        const allParticipants = frameRef.current.participants();
+        setParticipants(allParticipants);
+      }
+    };
+
+    const handleError = (error) => {
+      console.error('[VoiceChat] Daily error:', error);
+      setError(error.errorMsg || 'Voice chat error');
+      if (onError) onError(error);
+    };
+
+    // Set up event listeners
     frame
-      .on('joined-meeting', (event) => handleJoinedMeeting(event, frame))
-      .on('participant-joined', (event) => handleParticipantUpdate(event, frame))
-      .on('participant-updated', (event) => handleParticipantUpdate(event, frame))
-      .on('participant-left', (event) => handleParticipantLeft(event, frame))
+      .on('joined-meeting', handleJoinedMeeting)
+      .on('participant-joined', handleParticipantUpdate)
+      .on('participant-updated', handleParticipantUpdate)
+      .on('participant-left', handleParticipantLeft)
       .on('error', handleError);
 
     // Join the room
@@ -109,35 +120,45 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
 
     // Cleanup on unmount
     return () => {
-      if (frame) {
+      isCleaningUpRef.current = true;
+      const currentFrame = frameRef.current;
+
+      if (currentFrame) {
         console.log('[VoiceChat] Cleaning up call frame');
-        frame.leave()
+        currentFrame.leave()
           .then(() => {
-            frame.destroy();
+            currentFrame.destroy();
             console.log('[VoiceChat] Left and destroyed call frame');
           })
           .catch((err) => {
             console.warn('[VoiceChat] Error during cleanup:', err);
             // Destroy anyway even if leave fails
             try {
-              frame.destroy();
+              currentFrame.destroy();
             } catch (destroyErr) {
               console.warn('[VoiceChat] Error destroying frame:', destroyErr);
             }
+          })
+          .finally(() => {
+            frameRef.current = null;
+            isCleaningUpRef.current = false;
           });
+      } else {
+        isCleaningUpRef.current = false;
       }
     };
-  }, [roomUrl, playerName, playerId, onError, handleJoinedMeeting, handleParticipantUpdate, handleParticipantLeft, handleError]);
+    // Only depend on the actual props, not the callbacks
+  }, [roomUrl, playerName, playerId, onError]);
 
   // Toggle mute/unmute
   const toggleMute = useCallback(() => {
-    if (!callFrame) return;
+    if (!frameRef.current) return;
 
     const newMutedState = !isMuted;
-    callFrame.setLocalAudio(!newMutedState);
+    frameRef.current.setLocalAudio(!newMutedState);
     setIsMuted(newMutedState);
     console.log(`[VoiceChat] ${newMutedState ? 'Muted' : 'Unmuted'} microphone`);
-  }, [callFrame, isMuted]);
+  }, [isMuted]);
 
   if (error) {
     return (
@@ -179,9 +200,8 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
           {Object.entries(participants).map(([id, participant]) => (
             <div
               key={id}
-              className={`participant ${participant.local ? 'local' : ''} ${
-                participant.audio ? 'speaking' : 'muted'
-              }`}
+              className={`participant ${participant.local ? 'local' : ''} ${participant.audio ? 'speaking' : 'muted'
+                }`}
             >
               <span className="participant-icon">
                 {participant.audio ? '🎤' : '🔇'}
