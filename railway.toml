@@ -1,9 +1,14 @@
 [build]
 builder = "NIXPACKS"
+buildCommand = "npm run build"
 
 [build.env]
 NODE_ENV = "production"
 REACT_APP_SERVER_URL = "https://your-backend-app.up.railway.app"
+# Increase memory for build process
+NODE_OPTIONS = "--max-old-space-size=4096"
+# Disable source maps in production to speed up build
+GENERATE_SOURCEMAP = "false"
 
 [deploy]
 startCommand = "serve -s build -l $PORT"
