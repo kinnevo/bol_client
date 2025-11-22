@@ -226,7 +226,7 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
           {Object.entries(participants).map(([id, participant]) => (
             <div
               key={id}
-              className={`participant ${participant.local ? 'local' : ''} ${participant.audio ? 'speaking' : 'muted'
+              className={`participant ${participant.local ? 'local' : ''} ${!participant.audio ? 'speaking' : 'muted'
                 }`}
             >
               <span className="participant-icon">
