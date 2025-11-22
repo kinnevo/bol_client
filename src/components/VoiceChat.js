@@ -67,17 +67,6 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
         const allParticipants = frameRef.current.participants();
         setParticipants(allParticipants);
         console.log('[VoiceChat] Initial participants:', Object.keys(allParticipants).length);
-
-        // Start audio level observer for active speaker detection
-        if (!audioObserverStartedRef.current) {
-          try {
-            frameRef.current.startAudioLevelObserver(100);
-            audioObserverStartedRef.current = true;
-            console.log('[VoiceChat] Audio level observer started from joined-meeting');
-          } catch (err) {
-            console.warn('[VoiceChat] Could not start audio level observer:', err);
-          }
-        }
       }
     };
 
@@ -90,18 +79,6 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
       setIsJoined(currentIsJoined => {
         if (!currentIsJoined) {
           console.log('[VoiceChat] Setting isJoined=true from participant update');
-
-          // Start audio observer when we detect we're joined
-          if (frameRef.current && !audioObserverStartedRef.current) {
-            try {
-              frameRef.current.startAudioLevelObserver(100);
-              audioObserverStartedRef.current = true;
-              console.log('[VoiceChat] Audio level observer started from participant update');
-            } catch (err) {
-              console.warn('[VoiceChat] Could not start audio level observer:', err);
-            }
-          }
-
           return true;
         }
         return currentIsJoined;
@@ -171,18 +148,6 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
 
         // Set initial muted state based on audio being enabled
         setIsMuted(false); // We just enabled audio, so we're not muted
-
-        // Enable audio level monitoring for active speaker detection
-        setTimeout(() => {
-          try {
-            if (frameRef.current) {
-              frameRef.current.startAudioLevelObserver(100); // Check every 100ms
-              console.log('[VoiceChat] Audio level observer started');
-            }
-          } catch (err) {
-            console.warn('[VoiceChat] Could not start audio level observer:', err);
-          }
-        }, 500); // Small delay to ensure everything is initialized
 
         setIsJoined(true);
       })
