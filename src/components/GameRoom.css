@@ -530,13 +530,12 @@
   font-size: clamp(12px, 2.5vw, 14px);
 }
 
-.game-content {
+.game-content-inner {
   display: flex;
   flex-direction: column;
   gap: 2vh;
   width: 100%;
-  height: auto;
-  scroll-behavior: smooth;
+  height: 100%;
 }
 
 .game-board {
@@ -762,7 +761,7 @@
 
 /* Responsive Design - Desktop improvements */
 @media (min-width: 769px) {
-  .game-content {
+  .game-content-inner {
     flex-direction: row;
     gap: 3vh;
   }

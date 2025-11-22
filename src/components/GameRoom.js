@@ -284,7 +284,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
 
     return (
       <div className="game-room playing">
-        <div className="game-content">
+        <div className="game-content-inner">
           {/* Voice Chat Component - Always visible for debugging */}
           <VoiceChat
             roomUrl={voiceChatUrl}
