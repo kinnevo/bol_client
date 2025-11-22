@@ -22,6 +22,14 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     setBotsAvailable(botsEnabled);
   }, []);
 
+  // Initialize voice chat URL from room data (for reconnection after page reload)
+  useEffect(() => {
+    if (room && room.voiceChat && room.voiceChat.url) {
+      console.log('🎙️ Initializing voice chat from room data:', room.voiceChat.url);
+      setVoiceChatUrl(room.voiceChat.url);
+    }
+  }, [room]);
+
   useEffect(() => {
     if (!socket) return;
 
