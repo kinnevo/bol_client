@@ -99,17 +99,19 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
       .on('participant-left', handleParticipantLeft)
       .on('error', handleError);
 
-    // Join the room
+    // Join the room with only supported Daily.co properties
     frame
       .join({
         url: roomUrl,
         userName: playerName,
-        userId: playerId,
-        startAudioOff: false, // Mic enabled by default
-        startVideoOff: true,   // No video
+        // Note: user_id is not supported in join() - it should be set via meeting tokens
       })
       .then(() => {
         console.log('[VoiceChat] Successfully joined room');
+
+        // Enable microphone by default
+        frameRef.current.setLocalAudio(true);
+
         setIsJoined(true);
       })
       .catch((err) => {
@@ -169,7 +171,18 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
   }
 
   if (!roomUrl) {
-    return null;
+    return (
+      <div className="voice-chat-container">
+        <div className="voice-chat-header">
+          <span className="voice-chat-title">
+            🎙️ Voice Chat
+          </span>
+        </div>
+        <div className="voice-chat-loading">
+          <p>⏳ Setting up voice chat...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
