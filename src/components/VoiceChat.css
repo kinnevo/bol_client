@@ -23,11 +23,23 @@
   color: #667eea;
 }
 
+/* Video container for Daily.co iframe */
+.video-container {
+  width: 100%;
+  height: 400px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
 .voice-chat-controls {
   display: flex;
   gap: 8px;
   justify-content: center;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .voice-chat-button {
@@ -66,6 +78,26 @@
 .voice-chat-button.muted:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(245, 87, 108, 0.4);
+}
+
+.voice-chat-button.video-on {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+}
+
+.voice-chat-button.video-on:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(67, 233, 123, 0.4);
+}
+
+.voice-chat-button.video-off {
+  background: linear-gradient(135deg, #868f96 0%, #596164 100%);
+  color: white;
+}
+
+.voice-chat-button.video-off:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(134, 143, 150, 0.4);
 }
 
 .voice-chat-participants {
@@ -163,6 +195,10 @@
     font-size: 14px;
   }
 
+  .video-container {
+    height: 300px;
+  }
+
   .voice-chat-button {
     padding: 8px 16px;
     font-size: 12px;
@@ -170,5 +206,12 @@
 
   .participant-name {
     font-size: 12px;
+  }
+}
+
+/* Tablet responsive */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .video-container {
+    height: 350px;
   }
 }

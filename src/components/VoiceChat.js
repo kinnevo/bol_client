@@ -8,6 +8,7 @@ import './VoiceChat.css';
  */
 const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
   const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(true); // Video starts off by default
   const [isJoined, setIsJoined] = useState(false);
   const [participants, setParticipants] = useState({});
   const [activeSpeakers, setActiveSpeakers] = useState(new Set()); // Track who's actively speaking
@@ -16,6 +17,7 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
   // Use ref to track if we're currently cleaning up to prevent re-initialization
   const isCleaningUpRef = useRef(false);
   const frameRef = useRef(null);
+  const videoContainerRef = useRef(null);
 
   // Initialize Daily call frame
   useEffect(() => {
@@ -39,17 +41,16 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
       existingFrame.destroy();
     }
 
-    // Create Daily call frame
-    const frame = DailyIframe.createFrame({
-      iframeStyle: {
-        position: 'fixed',
-        width: '0px',
-        height: '0px',
-        border: '0',
-        visibility: 'hidden',
-      },
+    // Create Daily call frame - will be embedded in our video container
+    const frame = DailyIframe.createFrame(videoContainerRef.current, {
       showLeaveButton: false,
       showFullscreenButton: false,
+      iframeStyle: {
+        width: '100%',
+        height: '100%',
+        border: '0',
+        borderRadius: '8px',
+      },
     });
 
     frameRef.current = frame;
@@ -139,12 +140,14 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
       .then(() => {
         console.log('[VoiceChat] Successfully joined room');
 
-        // Enable microphone by default
+        // Enable microphone by default, keep video off
         frameRef.current.setLocalAudio(true);
-        console.log('[VoiceChat] Microphone enabled by default');
+        frameRef.current.setLocalVideo(false);
+        console.log('[VoiceChat] Microphone enabled, video disabled by default');
 
         // Set initial muted state based on audio being enabled
         setIsMuted(false); // We just enabled audio, so we're not muted
+        setIsVideoOff(true); // Video is off by default
 
         setIsJoined(true);
       })
@@ -196,6 +199,16 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
     console.log(`[VoiceChat] ${newMutedState ? 'Muted' : 'Unmuted'} microphone`);
   }, [isMuted]);
 
+  // Toggle video on/off
+  const toggleVideo = useCallback(() => {
+    if (!frameRef.current) return;
+
+    const newVideoState = !isVideoOff;
+    frameRef.current.setLocalVideo(!newVideoState);
+    setIsVideoOff(newVideoState);
+    console.log(`[VoiceChat] Video ${newVideoState ? 'disabled' : 'enabled'}`);
+  }, [isVideoOff]);
+
   if (error) {
     return (
       <div className="voice-chat-error">
@@ -223,8 +236,13 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
     <div className="voice-chat-container">
       <div className="voice-chat-header">
         <span className="voice-chat-title">
-          {isJoined ? '🎙️ Voice Chat Active' : '⏳ Connecting...'}
+          {isJoined ? '🎙️ Voice & Video Chat Active' : '⏳ Connecting...'}
         </span>
+      </div>
+
+      {/* Video container - Daily.co iframe will be embedded here */}
+      <div className="video-container" ref={videoContainerRef}>
+        {/* Daily.co iframe will be inserted here */}
       </div>
 
       <div className="voice-chat-controls">
@@ -235,6 +253,14 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
           title={isMuted ? 'Click to unmute' : 'Click to mute'}
         >
           {isMuted ? '🔇 Unmute' : '🔊 Mute'}
+        </button>
+        <button
+          className={`voice-chat-button ${isVideoOff ? 'video-off' : 'video-on'}`}
+          onClick={toggleVideo}
+          disabled={!isJoined}
+          title={isVideoOff ? 'Click to enable video' : 'Click to disable video'}
+        >
+          {isVideoOff ? '📹 Enable Video' : '📷 Disable Video'}
         </button>
       </div>
 
@@ -250,7 +276,7 @@ const VoiceChat = ({ roomUrl, playerName, playerId, onError }) => {
               className={`participant ${participant.local ? 'local' : ''} ${activeSpeakers.has(id) ? 'speaking' : ''} ${participant.audio ? '' : 'muted'}`}
             >
               <span className="participant-icon">
-                {!participant.audio ? '🎤' : '🔇'}
+                {participant.video ? '📹' : !participant.audio ? '🔇' : '🎤'}
               </span>
               <span className="participant-name">
                 {participant.user_name || 'Unknown'}
