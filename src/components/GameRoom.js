@@ -22,6 +22,14 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     setBotsAvailable(botsEnabled);
   }, []);
 
+  // Initialize voice chat URL from room data (for reconnection after page reload)
+  useEffect(() => {
+    if (room && room.voiceChat && room.voiceChat.url) {
+      console.log('🎙️ Initializing voice chat from room data:', room.voiceChat.url);
+      setVoiceChatUrl(room.voiceChat.url);
+    }
+  }, [room]);
+
   useEffect(() => {
     if (!socket) return;
 
@@ -36,9 +44,12 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       }
 
       // Set voice chat URL if available
+      console.log('🎙️ Voice chat data:', data.voiceChat);
       if (data.voiceChat && data.voiceChat.url) {
         console.log('🎙️ Voice chat URL received:', data.voiceChat.url);
         setVoiceChatUrl(data.voiceChat.url);
+      } else {
+        console.warn('⚠️ No voice chat URL in game-started event');
       }
     };
 
@@ -79,9 +90,17 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   useEffect(() => {
     if (room && gameState === 'playing' && room.turnOrder && turnOrder.length === 0) {
       console.log('Initializing turn order from room data:', room.turnOrder);
+      console.log('Room deck size:', room.deckSize, 'Current deck size state:', deckSize);
       setTurnOrder(room.turnOrder);
       setCurrentPlayerId(room.currentPlayerId);
-      setDeckSize(room.deckSize || 0);
+
+      // Initialize deck size from room data
+      if (room.deckSize !== undefined) {
+        console.log('Setting deck size from room:', room.deckSize);
+        setDeckSize(room.deckSize);
+      } else {
+        console.warn('⚠️ Room has no deckSize property!');
+      }
     }
   }, [room, gameState, turnOrder.length]);
 
@@ -195,7 +214,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
           <div className="waiting-icon">⏳</div>
           <h2>Waiting for Game to Start</h2>
           <p>Players in room: {room.players.length}/{room.maxPlayers}</p>
-          
+
           <div className="players-waiting">
             {room.players.map((playerId, index) => {
               const playerData = room.playerNames ?
@@ -246,7 +265,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
               </p>
             </div>
           )}
-          
+
           {room.players.length >= 2 && (
             <div className="ready-message">
               Ready to start! Waiting for host to begin the game.
@@ -265,16 +284,14 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
 
     return (
       <div className="game-room playing">
-        <div className="game-content">
-          {/* Voice Chat Component */}
-          {voiceChatUrl && (
-            <VoiceChat
-              roomUrl={voiceChatUrl}
-              playerName={playerName}
-              playerId={playerId}
-              onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
-            />
-          )}
+        <div className="game-content-inner">
+          {/* Voice Chat Component - Always visible for debugging */}
+          <VoiceChat
+            roomUrl={voiceChatUrl}
+            playerName={playerName}
+            playerId={playerId}
+            onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
+          />
 
           {/* Turn Order Display */}
           <div className="turn-order-panel">
@@ -328,7 +345,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
                 <Card
                   card={drawnCard}
                   isFlipped={isCardFlipped}
-                  onFlipComplete={() => {}}
+                  onFlipComplete={() => { }}
                 />
                 {isCardFlipped && (myTurn || (currentIsBot && userIsHost)) && (
                   <div className="card-actions">
@@ -394,7 +411,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
         <div className="finished-icon">🏆</div>
         <h2>Game Finished!</h2>
         <p>Thanks for playing!</p>
-        <button 
+        <button
           onClick={() => handleAction('return-to-lobby')}
           className="return-button"
         >

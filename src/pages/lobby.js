@@ -70,9 +70,12 @@ const LobbyPage = () => {
     if (socket && isConnected && storedName) {
       console.log('🔄 Lobby: Setting up socket listeners for', storedName);
       console.log('🔌 Socket ID:', socket.id, 'Connected:', isConnected);
-      
-      // Join lobby
-      socket.emit('join-lobby', { name: storedName });
+
+      // Get userId from localStorage (set during login)
+      const userId = localStorage.getItem('userId');
+
+      // Join lobby with userId for proper session tracking
+      socket.emit('join-lobby', { name: storedName, userId: userId });
 
       // Listen for lobby events
       socket.on('lobby-joined', (data) => {
