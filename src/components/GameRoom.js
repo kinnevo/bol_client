@@ -102,7 +102,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
         console.warn('⚠️ Room has no deckSize property!');
       }
     }
-  }, [room, gameState, turnOrder.length]);
+  }, [room, gameState, turnOrder.length, deckSize]);
 
   useEffect(() => {
     // Initialize game data based on room state
