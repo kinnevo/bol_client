@@ -3,6 +3,8 @@ import './GameRoom.css';
 import Deck from './Deck';
 import Card from './Card';
 import VoiceChat from './VoiceChat';
+import ScoreBoard from './ScoreBoard';
+import VotingPanel from './VotingPanel';
 
 const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket }) => {
   const [gameData, setGameData] = useState(null);
@@ -15,6 +17,16 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const [drawnCard, setDrawnCard] = useState(null);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [voiceChatUrl, setVoiceChatUrl] = useState(null);
+
+  // New voting system state
+  const [gamePhase, setGamePhase] = useState('drawing');
+  const [playerPoints, setPlayerPoints] = useState({});
+  const [pointThreshold, setPointThreshold] = useState(7);
+  const [votingState, setVotingState] = useState(null);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [voteCount, setVoteCount] = useState(0);
+  const [votingResults, setVotingResults] = useState(null);
+  const [gameWinner, setGameWinner] = useState(null);
 
   useEffect(() => {
     // Check if bots are available from localStorage
@@ -43,6 +55,11 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
         setDeckSize(data.deckSize || 0);
       }
 
+      // Initialize voting system state
+      if (data.gamePhase) setGamePhase(data.gamePhase);
+      if (data.playerPoints) setPlayerPoints(data.playerPoints);
+      if (data.pointThreshold) setPointThreshold(data.pointThreshold);
+
       // Set voice chat URL if available
       console.log('🎙️ Voice chat data:', data.voiceChat);
       if (data.voiceChat && data.voiceChat.url) {
@@ -59,6 +76,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       setDrawnCard(data.card);
       setDeckSize(data.deckSize);
       setIsCardFlipped(false);
+      if (data.gamePhase) setGamePhase(data.gamePhase);
 
       // Auto-flip the card after a brief delay
       setTimeout(() => {
@@ -73,16 +91,75 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       // Clear the drawn card when turn changes
       setDrawnCard(null);
       setIsCardFlipped(false);
+      setHasVoted(false);
+      setVoteCount(0);
+      setVotingState(null);
+      setVotingResults(null);
+      if (data.gamePhase) setGamePhase(data.gamePhase);
+      if (data.playerPoints) setPlayerPoints(data.playerPoints);
+    };
+
+    // Listen for voting phase started
+    const handleVotingPhaseStarted = (data) => {
+      console.log('🗳️ Voting phase started:', data);
+      setGamePhase('voting');
+      setVotingState({
+        speakerId: data.speakerId,
+        speakerName: data.speakerName,
+        expectedVoters: data.expectedVoters,
+        timeout: data.timeout
+      });
+      setHasVoted(false);
+      setVoteCount(0);
+    };
+
+    // Listen for vote count updates
+    const handleVoteCountUpdated = (data) => {
+      console.log('🗳️ Vote count updated:', data);
+      setVoteCount(data.voteCount);
+    };
+
+    // Listen for voting results
+    const handleVotingResults = (data) => {
+      console.log('🏆 Voting results:', data);
+      setGamePhase('results');
+      setVotingResults({
+        speakerId: data.speakerId,
+        speakerName: data.speakerName,
+        connectionAwarded: data.connectionAwarded,
+        wisdomAwarded: data.wisdomAwarded,
+        newTotals: data.newTotals
+      });
+      if (data.playerPoints) setPlayerPoints(data.playerPoints);
+    };
+
+    // Listen for game ended
+    const handleGameEnded = (data) => {
+      console.log('🎉 Game ended:', data);
+      setGamePhase('finished');
+      setGameWinner({
+        winnerId: data.winnerId,
+        winnerName: data.winnerName,
+        standings: data.standings
+      });
     };
 
     socket.on('game-started', handleGameStarted);
     socket.on('card-drawn', handleCardDrawn);
     socket.on('turn-changed', handleTurnChanged);
+    socket.on('voting-phase-started', handleVotingPhaseStarted);
+    socket.on('vote-count-updated', handleVoteCountUpdated);
+    socket.on('voting-results', handleVotingResults);
+    socket.on('game-ended', handleGameEnded);
 
     return () => {
       socket.off('game-started', handleGameStarted);
       socket.off('card-drawn', handleCardDrawn);
       socket.off('turn-changed', handleTurnChanged);
+      socket.off('voting-phase-started', handleVotingPhaseStarted);
+      socket.off('vote-count-updated', handleVoteCountUpdated);
+      socket.off('voting-results', handleVotingResults);
+      socket.off('game-ended', handleGameEnded);
     };
   }, [socket]);
 
@@ -101,6 +178,11 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       } else {
         console.warn('⚠️ Room has no deckSize property!');
       }
+
+      // Initialize voting state from room
+      if (room.gamePhase) setGamePhase(room.gamePhase);
+      if (room.playerPoints) setPlayerPoints(room.playerPoints);
+      if (room.pointThreshold) setPointThreshold(room.pointThreshold);
     }
   }, [room, gameState, turnOrder.length, deckSize]);
 
@@ -165,9 +247,16 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     }
   };
 
-  const handleNextTurn = () => {
-    if (socket && room) {
-      socket.emit('next-turn', { roomId: room.id });
+  const handleFinishTurn = () => {
+    if (socket && room && playerId) {
+      socket.emit('finish-turn', { roomId: room.id, playerId: playerId });
+    }
+  };
+
+  const handleVote = (voteType) => {
+    if (socket && room && playerId && !hasVoted) {
+      socket.emit('submit-vote', { roomId: room.id, voterId: playerId, voteType });
+      setHasVoted(true);
     }
   };
 
@@ -204,6 +293,13 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const handleDrawCardForBot = () => {
     if (socket && room && isHost() && isCurrentPlayerBot()) {
       socket.emit('draw-card', { roomId: room.id, playerId: currentPlayerId });
+    }
+  };
+
+  // Handler for admin to finish turn for bot
+  const handleFinishTurnForBot = () => {
+    if (socket && room && isHost() && isCurrentPlayerBot()) {
+      socket.emit('finish-turn', { roomId: room.id, playerId: currentPlayerId });
     }
   };
 
@@ -282,104 +378,233 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     const currentIsBot = isCurrentPlayerBot();
     const userIsHost = isHost();
 
-    return (
-      <div className="game-room playing">
-        <div className="game-content-inner">
-          {/* Voice Chat Component - Always visible for debugging */}
-          <VoiceChat
-            roomUrl={voiceChatUrl}
-            playerName={playerName}
-            playerId={playerId}
-            onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
-          />
+    // Check if game has ended
+    if (gamePhase === 'finished' && gameWinner) {
+      return (
+        <div className="game-room finished">
+          <div className="finished-content">
+            <div className="winner-celebration">
+              <div className="trophy-icon">🏆</div>
+              <h2>Game Over!</h2>
+              <div className="winner-announcement">
+                <span className="winner-label">Winner</span>
+                <span className="winner-name">{gameWinner.winnerName}</span>
+              </div>
+            </div>
 
-          {/* Turn Order Display */}
-          <div className="turn-order-panel">
-            <h4>Turn Order</h4>
-            <div className="turn-order-list">
-              {turnOrder.map((player, index) => (
-                <div
-                  key={player.id}
-                  className={`turn-order-item ${player.id === currentPlayerId ? 'current' : ''} ${player.isBot ? 'bot' : ''}`}
-                >
-                  <span className="turn-number">{index + 1}</span>
-                  <span className="turn-player-name">
-                    {player.isBot && '🤖 '}{player.name}
+            <div className="final-standings">
+              <h3>Final Standings</h3>
+              {gameWinner.standings && gameWinner.standings.map((player, index) => (
+                <div key={player.playerId} className={`standing-row ${index === 0 ? 'winner' : ''}`}>
+                  <span className="standing-rank">#{index + 1}</span>
+                  <span className="standing-name">
+                    {player.playerName}
+                    {player.isBot && ' 🤖'}
                   </span>
-                  {player.id === currentPlayerId && <span className="current-badge">Current</span>}
+                  <span className="standing-points">
+                    ❤️ {player.connection} | 💡 {player.wisdom} | Total: {player.total}
+                  </span>
                 </div>
               ))}
             </div>
+
+            <button
+              onClick={() => handleAction('return-to-lobby')}
+              className="return-button"
+            >
+              Return to Lobby
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="game-room playing">
+        <div className="game-layout">
+          {/* Left Sidebar - ScoreBoard */}
+          <div className="game-sidebar-left">
+            <ScoreBoard
+              players={turnOrder}
+              playerPoints={playerPoints}
+              pointThreshold={pointThreshold}
+              currentPlayerId={currentPlayerId}
+            />
           </div>
 
-          {/* Admin Controls for Bot Turn */}
-          {currentIsBot && userIsHost && !drawnCard && (
-            <div className="admin-bot-control">
-              <div className="admin-control-header">
-                <span className="admin-badge">👑 Admin Controls</span>
-                <p>Control bot player: {currentPlayerInfo.name}</p>
-              </div>
-              <button
-                className="admin-draw-btn"
-                onClick={handleDrawCardForBot}
-              >
-                🃏 Draw Card for Bot
-              </button>
-            </div>
-          )}
+          {/* Main Game Area */}
+          <div className="game-content-inner">
+            {/* Voice Chat Component */}
+            <VoiceChat
+              roomUrl={voiceChatUrl}
+              playerName={playerName}
+              playerId={playerId}
+              onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
+            />
 
-          <div className="game-board">
-            {/* Deck Section */}
-            <div className="deck-section">
-              <Deck
-                deckSize={deckSize}
-                onDrawCard={myTurn ? handleDrawCard : (currentIsBot && userIsHost ? handleDrawCardForBot : null)}
-                isPlayerTurn={(myTurn || (currentIsBot && userIsHost)) && !drawnCard}
-                disabled={(!myTurn && !(currentIsBot && userIsHost)) || drawnCard !== null}
-              />
-            </div>
-
-            {/* Drawn Card Display */}
-            {drawnCard && (
-              <div className="drawn-card-section">
-                <Card
-                  card={drawnCard}
-                  isFlipped={isCardFlipped}
-                  onFlipComplete={() => { }}
-                />
-                {isCardFlipped && (myTurn || (currentIsBot && userIsHost)) && (
-                  <div className="card-actions">
-                    <button
-                      className="next-turn-btn"
-                      onClick={handleNextTurn}
-                    >
-                      Next Turn ➡️
-                    </button>
+            {/* Turn Order Display */}
+            <div className="turn-order-panel">
+              <h4>Turn Order</h4>
+              <div className="turn-order-list">
+                {turnOrder.map((player, index) => (
+                  <div
+                    key={player.id}
+                    className={`turn-order-item ${player.id === currentPlayerId ? 'current' : ''} ${player.isBot ? 'bot' : ''}`}
+                  >
+                    <span className="turn-number">{index + 1}</span>
+                    <span className="turn-player-name">
+                      {player.isBot && '🤖 '}{player.name}
+                    </span>
+                    {player.id === currentPlayerId && <span className="current-badge">Current</span>}
                   </div>
-                )}
+                ))}
+              </div>
+            </div>
+
+            {/* Game Phase Display */}
+            <div className="game-phase-indicator">
+              <span className={`phase-badge ${gamePhase}`}>
+                {gamePhase === 'drawing' && '🃏 Draw Phase'}
+                {gamePhase === 'talking' && '🗣️ Talking Phase'}
+                {gamePhase === 'voting' && '🗳️ Voting Phase'}
+                {gamePhase === 'results' && '🏆 Results'}
+              </span>
+            </div>
+
+            {/* Admin Controls for Bot Turn */}
+            {currentIsBot && userIsHost && gamePhase === 'drawing' && !drawnCard && (
+              <div className="admin-bot-control">
+                <div className="admin-control-header">
+                  <span className="admin-badge">👑 Admin Controls</span>
+                  <p>Control bot player: {currentPlayerInfo.name}</p>
+                </div>
+                <button
+                  className="admin-draw-btn"
+                  onClick={handleDrawCardForBot}
+                >
+                  🃏 Draw Card for Bot
+                </button>
               </div>
             )}
 
-            {/* Instructions */}
-            {!drawnCard && myTurn && (
-              <div className="game-instructions">
-                <p>🃏 Click the deck to draw a card!</p>
-              </div>
-            )}
+            <div className="game-board">
+              {/* Drawing Phase */}
+              {gamePhase === 'drawing' && (
+                <>
+                  <div className="deck-section">
+                    <Deck
+                      deckSize={deckSize}
+                      onDrawCard={myTurn ? handleDrawCard : (currentIsBot && userIsHost ? handleDrawCardForBot : null)}
+                      isPlayerTurn={(myTurn || (currentIsBot && userIsHost)) && !drawnCard}
+                      disabled={(!myTurn && !(currentIsBot && userIsHost)) || drawnCard !== null}
+                    />
+                  </div>
 
-            {!drawnCard && currentIsBot && userIsHost && (
-              <div className="game-instructions bot-admin">
-                <p>🤖 You're controlling bot {currentPlayerInfo.name} - Click the deck to draw!</p>
-              </div>
-            )}
+                  {!drawnCard && myTurn && (
+                    <div className="game-instructions">
+                      <p>🃏 Click the deck to draw a card!</p>
+                    </div>
+                  )}
 
-            {!drawnCard && !myTurn && !(currentIsBot && userIsHost) && currentPlayerInfo && (
-              <div className="game-instructions">
-                <p>Waiting for {currentPlayerInfo.name} to draw a card...</p>
-              </div>
-            )}
+                  {!drawnCard && currentIsBot && userIsHost && (
+                    <div className="game-instructions bot-admin">
+                      <p>🤖 You're controlling bot {currentPlayerInfo.name} - Click the deck to draw!</p>
+                    </div>
+                  )}
+
+                  {!drawnCard && !myTurn && !(currentIsBot && userIsHost) && currentPlayerInfo && (
+                    <div className="game-instructions">
+                      <p>Waiting for {currentPlayerInfo.name} to draw a card...</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Talking Phase - Show Card */}
+              {gamePhase === 'talking' && drawnCard && (
+                <div className="talking-phase">
+                  <div className="drawn-card-section">
+                    <Card
+                      card={drawnCard}
+                      isFlipped={isCardFlipped}
+                      onFlipComplete={() => { }}
+                    />
+                  </div>
+
+                  {myTurn ? (
+                    <div className="talking-instructions">
+                      <p>🗣️ Share your thoughts about this question, then click Finish!</p>
+                      <button
+                        className="finish-turn-btn"
+                        onClick={handleFinishTurn}
+                      >
+                        ✅ Finish Turn
+                      </button>
+                    </div>
+                  ) : currentIsBot && userIsHost ? (
+                    <div className="talking-instructions bot-admin">
+                      <p>🤖 Bot is "speaking" - Click to finish their turn</p>
+                      <button
+                        className="finish-turn-btn"
+                        onClick={handleFinishTurnForBot}
+                      >
+                        ✅ Finish Bot's Turn
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="talking-instructions">
+                      <p>👂 Listen to {currentPlayerInfo?.name} share their thoughts...</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Voting Phase */}
+              {gamePhase === 'voting' && votingState && (
+                <VotingPanel
+                  speakerId={votingState.speakerId}
+                  speakerName={votingState.speakerName}
+                  currentPlayerId={playerId}
+                  expectedVoters={votingState.expectedVoters}
+                  voteCount={voteCount}
+                  timeout={votingState.timeout}
+                  hasVoted={hasVoted}
+                  onVote={handleVote}
+                />
+              )}
+
+              {/* Results Phase */}
+              {gamePhase === 'results' && votingResults && (
+                <div className="results-phase">
+                  <div className="results-card">
+                    <h3>🏆 Results</h3>
+                    <div className="results-speaker">
+                      <span className="speaker-name">{votingResults.speakerName}</span>
+                      <span className="received-label">received</span>
+                    </div>
+                    <div className="results-points">
+                      <div className="result-point connection">
+                        <span className="result-icon">❤️</span>
+                        <span className="result-value">{votingResults.connectionAwarded}</span>
+                        <span className="result-label">Connection</span>
+                      </div>
+                      <div className="result-point wisdom">
+                        <span className="result-icon">💡</span>
+                        <span className="result-value">{votingResults.wisdomAwarded}</span>
+                        <span className="result-label">Wisdom</span>
+                      </div>
+                    </div>
+                    <div className="results-total">
+                      New Total: {(votingResults.newTotals?.connection || 0) + (votingResults.newTotals?.wisdom || 0)} / {pointThreshold}
+                    </div>
+                    <p className="results-wait">Next turn starting soon...</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
+          {/* Right Sidebar - Chat */}
           <div className="game-sidebar">
             <div className="chat-panel">
               <h4>Chat</h4>
