@@ -876,23 +876,30 @@
 }
 
 .results-card {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 20px;
-  padding: 30px 40px;
-  color: white;
+  background: white;
+  border-radius: 16px;
+  padding: 25px 35px;
+  color: #333;
   text-align: center;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   max-width: 400px;
   width: 100%;
 }
 
 .results-card h3 {
   margin: 0 0 20px 0;
-  font-size: 24px;
+  font-size: 22px;
+  color: #333;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .results-speaker {
   margin-bottom: 25px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
 }
 
 .results-speaker .speaker-name {
@@ -908,7 +915,7 @@
 
 .results-speaker .received-label {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #888;
 }
 
 .results-points {
@@ -923,41 +930,49 @@
   flex-direction: column;
   align-items: center;
   gap: 5px;
+  padding: 15px 25px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
 }
 
 .result-icon {
-  font-size: 40px;
+  font-size: 36px;
 }
 
 .result-value {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
 }
 
 .result-point.connection .result-value {
-  color: #ff6b9d;
+  color: #e74c3c;
 }
 
 .result-point.wisdom .result-value {
-  color: #ffc107;
+  color: #f39c12;
 }
 
 .result-label {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
 }
 
 .results-total {
-  font-size: 18px;
+  font-size: 17px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #f8f9fa;
   border-radius: 10px;
   margin-bottom: 15px;
+  color: #555;
+  font-weight: 500;
+  border: 1px solid #e9ecef;
 }
 
 .results-wait {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #888;
   margin: 0;
   font-style: italic;
 }

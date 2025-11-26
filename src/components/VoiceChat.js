@@ -44,60 +44,92 @@ const VoiceChat = ({ roomUrl, playerName, onError }) => {
 
     console.log('[VoiceChat] Initializing Daily.co with room:', roomUrl);
 
-    // Prevent duplicate instances - destroy any existing frames first
-    const existingFrame = DailyIframe.getCallInstance();
-    if (existingFrame) {
-      console.log('[VoiceChat] Destroying existing frame before creating new one');
-      existingFrame.destroy();
-    }
+    let isCancelled = false;
 
-    // Create Daily call frame - will be embedded in our video container
-    const frame = DailyIframe.createFrame(videoContainerRef.current, {
-      showLeaveButton: false,
-      showFullscreenButton: false,
-      iframeStyle: {
-        width: '100%',
-        height: '100%',
-        border: '0',
-        borderRadius: '8px',
-      },
-    });
+    const initializeDaily = async () => {
+      // Prevent duplicate instances - destroy any existing frames first
+      const existingFrame = DailyIframe.getCallInstance();
+      if (existingFrame) {
+        console.log('[VoiceChat] Destroying existing frame before creating new one');
+        try {
+          // Try to leave first, then destroy
+          await existingFrame.leave().catch(() => {});
+          await existingFrame.destroy();
+          console.log('[VoiceChat] Existing frame destroyed successfully');
+        } catch (err) {
+          console.warn('[VoiceChat] Error destroying existing frame:', err);
+        }
+        // Small delay to ensure cleanup is complete
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
 
-    frameRef.current = frame;
+      // Check if we should still proceed
+      if (isCancelled || !videoContainerRef.current) {
+        console.log('[VoiceChat] Initialization cancelled or container gone');
+        return;
+      }
 
-    // Event handler for errors
-    const handleError = (error) => {
-      console.error('[VoiceChat] Daily error:', error);
-      setError(error.errorMsg || 'Voice chat error');
-      if (onError) onError(error);
-    };
+      // Create Daily call frame - will be embedded in our video container
+      const frame = DailyIframe.createFrame(videoContainerRef.current, {
+        showLeaveButton: false,
+        showFullscreenButton: false,
+        iframeStyle: {
+          width: '100%',
+          height: '100%',
+          border: '0',
+          borderRadius: '8px',
+        },
+      });
 
-    // Set up error event listener
-    frame.on('error', handleError);
+      if (isCancelled) {
+        frame.destroy();
+        return;
+      }
 
-    // Join the room with only supported Daily.co properties
-    frame
-      .join({
-        url: roomUrl,
-        userName: playerName,
-        // Note: user_id is not supported in join() - it should be set via meeting tokens
-      })
-      .then(() => {
+      frameRef.current = frame;
+
+      // Event handler for errors
+      const handleError = (error) => {
+        console.error('[VoiceChat] Daily error:', error);
+        setError(error.errorMsg || 'Voice chat error');
+        if (onError) onError(error);
+      };
+
+      // Set up error event listener
+      frame.on('error', handleError);
+
+      try {
+        // Join the room with only supported Daily.co properties
+        await frame.join({
+          url: roomUrl,
+          userName: playerName,
+          // Note: user_id is not supported in join() - it should be set via meeting tokens
+        });
+
+        if (isCancelled) return;
+
         console.log('[VoiceChat] Successfully joined room');
 
         // Enable microphone by default, keep video off
-        frameRef.current.setLocalAudio(true);
-        frameRef.current.setLocalVideo(false);
-        console.log('[VoiceChat] Microphone enabled, video disabled by default');
-      })
-      .catch((err) => {
+        if (frameRef.current) {
+          frameRef.current.setLocalAudio(true);
+          frameRef.current.setLocalVideo(false);
+          console.log('[VoiceChat] Microphone enabled, video disabled by default');
+        }
+      } catch (err) {
         console.error('[VoiceChat] Error joining room:', err);
-        setError('Failed to join voice chat');
-        if (onError) onError(err);
-      });
+        if (!isCancelled) {
+          setError('Failed to join voice chat');
+          if (onError) onError(err);
+        }
+      }
+    };
+
+    initializeDaily();
 
     // Cleanup on unmount
     return () => {
+      isCancelled = true;
       isCleaningUpRef.current = true;
       const currentFrame = frameRef.current;
 

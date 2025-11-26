@@ -206,6 +206,12 @@ const GamePage = () => {
   };
 
   const handleGameAction = (action, data) => {
+    // Handle return-to-lobby action by leaving the room
+    if (action === 'return-to-lobby') {
+      handleLeaveRoom();
+      return;
+    }
+
     if (socket && room) {
       socket.emit('game-action', {
         roomId: room.id,

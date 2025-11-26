@@ -1,9 +1,9 @@
 .voting-panel {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 20px;
-  padding: 30px;
-  color: white;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   max-width: 400px;
   margin: 0 auto;
   animation: slide-up 0.4s ease;
@@ -25,26 +25,32 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .voting-header h3 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
 }
 
 .timer {
-  background: rgba(255, 255, 255, 0.1);
+  background: #f8f9fa;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 18px;
   font-weight: 600;
   font-family: monospace;
+  color: #555;
+  border: 1px solid #e9ecef;
 }
 
 .timer.warning {
-  background: rgba(255, 87, 87, 0.3);
-  color: #ff5757;
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  border-color: rgba(231, 76, 60, 0.3);
   animation: pulse 1s infinite;
 }
 
@@ -53,22 +59,23 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.6;
   }
 }
 
 .voting-speaker {
   text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #f8f9fa;
   border-radius: 12px;
+  border: 1px solid #e9ecef;
 }
 
 .speaker-label {
   display: block;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #888;
   margin-bottom: 5px;
 }
 
@@ -84,8 +91,9 @@
 .voting-prompt {
   text-align: center;
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #555;
   margin-bottom: 20px;
+  font-weight: 500;
 }
 
 .voting-buttons {
@@ -98,61 +106,61 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  border: 2px solid transparent;
-  border-radius: 16px;
+  padding: 18px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.05);
+  background: #f8f9fa;
 }
 
 .vote-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .vote-btn.connection {
-  border-color: rgba(255, 107, 157, 0.3);
+  border-color: rgba(231, 76, 60, 0.3);
 }
 
 .vote-btn.connection:hover {
-  background: rgba(255, 107, 157, 0.15);
-  border-color: #ff6b9d;
+  background: rgba(231, 76, 60, 0.08);
+  border-color: #e74c3c;
 }
 
 .vote-btn.wisdom {
-  border-color: rgba(255, 193, 7, 0.3);
+  border-color: rgba(243, 156, 18, 0.3);
 }
 
 .vote-btn.wisdom:hover {
-  background: rgba(255, 193, 7, 0.15);
-  border-color: #ffc107;
+  background: rgba(243, 156, 18, 0.08);
+  border-color: #f39c12;
 }
 
 .vote-btn.skip {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: #e9ecef;
 }
 
 .vote-btn.skip:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: #f0f0f0;
+  border-color: #ccc;
 }
 
 .vote-icon {
-  font-size: 36px;
+  font-size: 32px;
   margin-bottom: 8px;
 }
 
 .vote-label {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: white;
+  color: #333;
   margin-bottom: 4px;
 }
 
 .vote-desc {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #888;
   text-align: center;
 }
 
@@ -160,7 +168,7 @@
 .voting-waiting,
 .voting-submitted {
   text-align: center;
-  padding: 30px 0;
+  padding: 25px 0;
 }
 
 .waiting-icon {
@@ -170,7 +178,7 @@
 .spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid rgba(102, 126, 234, 0.3);
+  border: 4px solid rgba(102, 126, 234, 0.2);
   border-top-color: #667eea;
   border-radius: 50%;
   margin: 0 auto;
@@ -184,7 +192,7 @@
 }
 
 .submitted-icon {
-  font-size: 60px;
+  font-size: 56px;
   margin-bottom: 15px;
   animation: pop-in 0.4s ease;
 }
@@ -203,9 +211,10 @@
 
 .voting-waiting p,
 .voting-submitted p {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 17px;
+  color: #555;
   margin-bottom: 20px;
+  font-weight: 500;
 }
 
 .vote-progress {
@@ -218,7 +227,7 @@
 .vote-progress-bar {
   width: 200px;
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #e9ecef;
   border-radius: 4px;
   overflow: hidden;
 }
@@ -232,29 +241,29 @@
 
 .vote-count {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #888;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
   .voting-panel {
-    padding: 20px;
+    padding: 18px;
     margin: 0 10px;
   }
 
   .voting-header h3 {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .vote-btn {
-    padding: 15px;
+    padding: 14px;
   }
 
   .vote-icon {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .vote-label {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
