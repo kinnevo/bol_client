@@ -422,7 +422,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     return (
       <div className="game-room playing">
         <div className="game-layout">
-          {/* Left Sidebar - ScoreBoard and Voice Chat (desktop) */}
+          {/* Left Column - ScoreBoard and Voice Chat */}
           <div className="game-sidebar-left">
             <ScoreBoard
               players={turnOrder}
@@ -431,8 +431,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
               currentPlayerId={currentPlayerId}
               turnOrder={turnOrder}
             />
-            {/* Voice Chat - shown in sidebar on desktop */}
-            <div className="voice-chat-sidebar">
+            <div className="voice-chat-wrapper">
               <VoiceChat
                 roomUrl={voiceChatUrl}
                 playerName={playerName}
@@ -440,16 +439,6 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
                 onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
               />
             </div>
-          </div>
-
-          {/* Voice Chat - shown at top on mobile */}
-          <div className="voice-chat-mobile">
-            <VoiceChat
-              roomUrl={voiceChatUrl}
-              playerName={playerName}
-              playerId={playerId}
-              onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
-            />
           </div>
 
           {/* Main Game Area */}
