@@ -214,14 +214,6 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     }
   };
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (message.trim()) {
-      handleAction('send-message', { message: message.trim() });
-      setMessage('');
-    }
-  };
-
   const handleAddBot = () => {
     if (socket && room && !addingBot) {
       setAddingBot(true);
