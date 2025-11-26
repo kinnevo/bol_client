@@ -773,6 +773,16 @@
   order: -1;
 }
 
+/* Voice chat visibility - mobile shows top, desktop shows sidebar */
+.voice-chat-mobile {
+  display: block;
+  width: 100%;
+}
+
+.voice-chat-sidebar {
+  display: none;
+}
+
 /* Game Phase Indicator */
 .game-phase-indicator {
   text-align: center;
@@ -1054,6 +1064,24 @@
     width: 300px;
     min-width: 280px;
     order: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* Desktop: show sidebar voice chat, hide mobile version */
+  .voice-chat-mobile {
+    display: none;
+  }
+
+  .voice-chat-sidebar {
+    display: block;
+    margin-top: 15px;
+  }
+
+  /* Make voice chat smaller in sidebar */
+  .voice-chat-sidebar .video-container {
+    height: 180px;
   }
 
   .game-content-inner {

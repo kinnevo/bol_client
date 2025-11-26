@@ -42,7 +42,6 @@ const ScoreBoard = ({ players, playerPoints, pointThreshold, currentPlayerId, tu
                     {player.name}
                     {player.isBot && <span className="bot-badge">BOT</span>}
                   </span>
-                  {isCurrentTurn && <span className="turn-indicator">🎤 Speaking</span>}
                 </div>
               </div>
 
