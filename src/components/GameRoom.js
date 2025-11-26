@@ -429,6 +429,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
               playerPoints={playerPoints}
               pointThreshold={pointThreshold}
               currentPlayerId={currentPlayerId}
+              turnOrder={turnOrder}
             />
           </div>
 
@@ -441,25 +442,6 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
               playerId={playerId}
               onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
             />
-
-            {/* Turn Order Display */}
-            <div className="turn-order-panel">
-              <h4>Turn Order</h4>
-              <div className="turn-order-list">
-                {turnOrder.map((player, index) => (
-                  <div
-                    key={player.id}
-                    className={`turn-order-item ${player.id === currentPlayerId ? 'current' : ''} ${player.isBot ? 'bot' : ''}`}
-                  >
-                    <span className="turn-number">{index + 1}</span>
-                    <span className="turn-player-name">
-                      {player.isBot && '🤖 '}{player.name}
-                    </span>
-                    {player.id === currentPlayerId && <span className="current-badge">Current</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Game Phase Display */}
             <div className="game-phase-indicator">

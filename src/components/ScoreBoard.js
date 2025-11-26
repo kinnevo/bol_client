@@ -1,17 +1,21 @@
 import React from 'react';
 import './ScoreBoard.css';
 
-const ScoreBoard = ({ players, playerPoints, pointThreshold, currentPlayerId }) => {
-  // Create sorted list of players by total points
-  const sortedPlayers = [...players].map(player => {
+const ScoreBoard = ({ players, playerPoints, pointThreshold, currentPlayerId, turnOrder }) => {
+  // Use turn order if provided, otherwise use players array
+  const orderedPlayers = turnOrder && turnOrder.length > 0 ? turnOrder : players;
+
+  // Map players with their points (keep turn order, don't sort by points)
+  const playersWithPoints = orderedPlayers.map((player, index) => {
     const points = playerPoints[player.id] || { connection: 0, wisdom: 0 };
     return {
       ...player,
+      turnNumber: index + 1,
       connection: points.connection,
       wisdom: points.wisdom,
       total: points.connection + points.wisdom
     };
-  }).sort((a, b) => b.total - a.total);
+  });
 
   return (
     <div className="scoreboard">
@@ -21,24 +25,24 @@ const ScoreBoard = ({ players, playerPoints, pointThreshold, currentPlayerId }) 
       </div>
 
       <div className="scoreboard-players">
-        {sortedPlayers.map((player, index) => {
+        {playersWithPoints.map((player) => {
           const progressPercent = Math.min((player.total / pointThreshold) * 100, 100);
           const isCurrentTurn = player.id === currentPlayerId;
-          const isLeading = index === 0 && player.total > 0;
 
           return (
             <div
               key={player.id}
-              className={`scoreboard-player ${isCurrentTurn ? 'current-turn' : ''} ${isLeading ? 'leading' : ''}`}
+              className={`scoreboard-player ${isCurrentTurn ? 'current-turn' : ''}`}
             >
               <div className="player-info">
-                <div className="player-rank">#{index + 1}</div>
+                <div className="player-turn-number">{player.turnNumber}</div>
                 <div className="player-name-container">
                   <span className="player-name">
+                    {player.isBot && <span className="bot-emoji">🤖</span>}
                     {player.name}
                     {player.isBot && <span className="bot-badge">BOT</span>}
                   </span>
-                  {isCurrentTurn && <span className="turn-indicator">Speaking</span>}
+                  {isCurrentTurn && <span className="turn-indicator">🎤 Speaking</span>}
                 </div>
               </div>
 
