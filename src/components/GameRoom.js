@@ -604,7 +604,8 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
             </div>
           </div>
 
-          {/* Right Sidebar - Chat */}
+          {/* Right Sidebar - Chat (hidden to encourage voice chat) */}
+          {/*
           <div className="game-sidebar">
             <div className="chat-panel">
               <h4>Chat</h4>
@@ -625,6 +626,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
               </form>
             </div>
           </div>
+          */}
         </div>
       </div>
     );
