@@ -79,13 +79,20 @@ const GamePage = () => {
 
   useEffect(() => {
     const storedName = sessionStorage.getItem('playerName');
-    
+    const userId = localStorage.getItem('userId');
+
     if (socket && isConnected && roomId && storedName) {
       console.log('🎮 Game page: Socket ID:', socket.id, 'Joining room:', roomId);
-      
-      // Since socket persists, we should already be in lobby, just join the room
-      console.log('🎯 Game page: Attempting to join room:', roomId);
-      socket.emit('join-room', roomId);
+
+      // First join the lobby (in case of refresh with new session), then join room
+      console.log('🔄 Game page: Joining lobby first...');
+      socket.emit('join-lobby', { name: storedName, userId: userId });
+
+      // Listen for lobby-joined, then join the room
+      socket.on('lobby-joined', (data) => {
+        console.log('✅ Game page: Lobby joined, now joining room:', roomId);
+        socket.emit('join-room', roomId);
+      });
 
       // Listen for room events
       socket.on('room-joined', (roomData) => {
@@ -199,6 +206,12 @@ const GamePage = () => {
   };
 
   const handleGameAction = (action, data) => {
+    // Handle return-to-lobby action by leaving the room
+    if (action === 'return-to-lobby') {
+      handleLeaveRoom();
+      return;
+    }
+
     if (socket && room) {
       socket.emit('game-action', {
         roomId: room.id,

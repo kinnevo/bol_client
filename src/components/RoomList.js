@@ -1,7 +1,7 @@
 import React from 'react';
 import './RoomList.css';
 
-const RoomList = ({ rooms = [], onJoinRoom }) => {
+const RoomList = ({ rooms = [], onJoinRoom, currentPlayerId }) => {
   if (!rooms || rooms.length === 0) {
     return (
       <div className="room-list">
@@ -40,8 +40,32 @@ const RoomList = ({ rooms = [], onJoinRoom }) => {
     }
   };
 
+  // Get actual player count from either players array or playerNames array
+  const getPlayerCount = (room) => {
+    if (room.playerNames && room.playerNames.length > 0) {
+      return room.playerNames.length;
+    }
+    return room.players ? room.players.length : 0;
+  };
+
+  // Check if current player was originally in this game (for rejoin)
+  const wasInGame = (room) => {
+    if (!currentPlayerId || !room.turnOrder) return false;
+    return room.turnOrder.some(p =>
+      (typeof p === 'object' ? p.id : p) === currentPlayerId
+    );
+  };
+
   const canJoinRoom = (room) => {
-    return room.status === 'waiting' && room.players.length < room.maxPlayers;
+    // Can join if waiting and not full
+    if (room.status === 'waiting' && getPlayerCount(room) < room.maxPlayers) {
+      return true;
+    }
+    // Can rejoin if game in progress and was originally in the game
+    if (room.status === 'playing' && wasInGame(room)) {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -63,21 +87,21 @@ const RoomList = ({ rooms = [], onJoinRoom }) => {
               <div className="room-info">
                 <div className="player-count">
                   <span className="count-icon">👥</span>
-                  {room.players.length}/{room.maxPlayers} players
+                  {getPlayerCount(room)}/{room.maxPlayers} players
                 </div>
-                
+
                 <div className="room-id">
                   Room ID: {room.id.slice(-6)} • Host: {room.hostId ? room.hostId.slice(-4) : 'Unknown'}
                 </div>
               </div>
-              
+
               <div className="room-actions">
                 {canJoinRoom(room) ? (
                   <button
                     onClick={() => onJoinRoom(room.id)}
                     className="join-button"
                   >
-                    Join Room
+                    {room.status === 'playing' && wasInGame(room) ? 'Rejoin Game' : 'Join Room'}
                   </button>
                 ) : room.status === 'playing' ? (
                   <button className="join-button disabled" disabled>
@@ -91,18 +115,18 @@ const RoomList = ({ rooms = [], onJoinRoom }) => {
               </div>
             </div>
             
-            {room.players.length > 0 && (
+            {getPlayerCount(room) > 0 && (
               <div className="room-players">
                 <div className="players-label">Players:</div>
                 <div className="players-avatars">
-                  {room.players.slice(0, 4).map((playerId, index) => (
-                    <div key={playerId} className="player-avatar">
+                  {(room.playerNames || room.players || []).slice(0, 4).map((player, index) => (
+                    <div key={typeof player === 'object' ? player.id : player} className="player-avatar">
                       {index + 1}
                     </div>
                   ))}
-                  {room.players.length > 4 && (
+                  {getPlayerCount(room) > 4 && (
                     <div className="player-avatar more">
-                      +{room.players.length - 4}
+                      +{getPlayerCount(room) - 4}
                     </div>
                   )}
                 </div>

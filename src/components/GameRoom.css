@@ -759,24 +759,525 @@
   min-width: 150px;
 }
 
+/* New Game Layout with Scoreboard */
+.game-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+  width: 100%;
+  min-height: 100%;
+}
+
+.game-sidebar-left {
+  width: 100%;
+  order: -1;
+  display: flex;
+  flex-direction: column-reverse; /* On mobile: voice chat first, then scoreboard */
+  gap: 15px;
+}
+
+/* Voice chat wrapper */
+.voice-chat-wrapper {
+  width: 100%;
+}
+
+/* Game Phase Indicator */
+.game-phase-indicator {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.phase-badge {
+  display: inline-block;
+  padding: 10px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.phase-badge.drawing {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.phase-badge.talking {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.phase-badge.voting {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.phase-badge.results {
+  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+}
+
+/* Talking Phase */
+.talking-phase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.talking-instructions {
+  text-align: center;
+  padding: 20px;
+  background: rgba(17, 153, 142, 0.1);
+  border-radius: 12px;
+  border: 2px dashed rgba(17, 153, 142, 0.3);
+  max-width: 400px;
+}
+
+.talking-instructions p {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #11998e;
+  font-weight: 500;
+}
+
+.talking-instructions.bot-admin {
+  background: rgba(240, 147, 251, 0.1);
+  border-color: rgba(245, 87, 108, 0.4);
+}
+
+.talking-instructions.bot-admin p {
+  color: #f5576c;
+}
+
+.finish-turn-btn {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+}
+
+.finish-turn-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+}
+
+/* Results Phase */
+.results-phase {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+.results-card {
+  background: white;
+  border-radius: 16px;
+  padding: 25px 35px;
+  color: #333;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.results-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 22px;
+  color: #333;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.results-speaker {
+  margin-bottom: 25px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.results-speaker .speaker-name {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 5px;
+}
+
+.results-speaker .received-label {
+  font-size: 14px;
+  color: #888;
+}
+
+.results-points {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 25px;
+}
+
+.result-point {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 15px 25px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.result-icon {
+  font-size: 36px;
+}
+
+.result-value {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.result-point.connection .result-value {
+  color: #e74c3c;
+}
+
+.result-point.wisdom .result-value {
+  color: #f39c12;
+}
+
+.result-label {
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+}
+
+.results-total {
+  font-size: 17px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  color: #555;
+  font-weight: 500;
+  border: 1px solid #e9ecef;
+}
+
+.results-wait {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Winner/Finished Styles */
+.winner-celebration {
+  margin-bottom: 30px;
+}
+
+.trophy-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.winner-announcement {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px 40px;
+  border-radius: 15px;
+  display: inline-block;
+}
+
+.winner-label {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 5px;
+}
+
+.winner-name {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+}
+
+/* Game Summary - Finished Screen */
+.game-summary {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  margin: 30px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.summary-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.threshold-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.final-scoreboard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scoreboard-entry {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.scoreboard-entry.winner {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 193, 7, 0.05) 100%);
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+.entry-rank {
+  font-size: 20px;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 8px;
+}
+
+.scoreboard-entry.winner .entry-rank {
+  font-size: 24px;
+}
+
+.entry-player {
+  margin-bottom: 10px;
+}
+
+.entry-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bot-tag {
+  font-size: 14px;
+}
+
+.entry-points {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.point-breakdown {
+  display: flex;
+  gap: 20px;
+}
+
+.entry-points .point-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.entry-points .point-icon {
+  font-size: 18px;
+}
+
+.entry-points .point-value {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.entry-points .point-item.connection .point-value {
+  color: #e74c3c;
+}
+
+.entry-points .point-item.wisdom .point-value {
+  color: #f39c12;
+}
+
+.total-score {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.total-score .total-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #333;
+}
+
+.total-score .total-divider {
+  font-size: 16px;
+  color: #999;
+  margin: 0 2px;
+}
+
+.total-score .total-threshold {
+  font-size: 14px;
+  color: #888;
+}
+
+.entry-progress {
+  margin-top: 5px;
+}
+
+.progress-track {
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #ff6b9d 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.scoreboard-entry.winner .progress-fill {
+  background: linear-gradient(90deg, #ffd700 0%, #ffb700 50%, #ffa500 100%);
+}
+
+/* Old standings styles - keeping for backwards compatibility */
+.final-standings {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin: 30px 0;
+  text-align: left;
+}
+
+.final-standings h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  text-align: center;
+}
+
+.standing-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #f5f7fa;
+}
+
+.standing-row.winner {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 193, 7, 0.1) 100%);
+  border: 2px solid rgba(255, 215, 0, 0.5);
+}
+
+.standing-rank {
+  font-weight: 700;
+  font-size: 18px;
+  color: #667eea;
+  min-width: 40px;
+}
+
+.standing-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.standing-points {
+  font-size: 14px;
+  color: #666;
+}
+
 /* Responsive Design - Desktop improvements */
 @media (min-width: 769px) {
-  .game-content-inner {
+  .game-layout {
     flex-direction: row;
-    gap: 3vh;
+    gap: 20px;
+  }
+
+  .game-sidebar-left {
+    width: 300px;
+    min-width: 280px;
+    order: 0;
+    display: flex;
+    flex-direction: column; /* Desktop: scoreboard first, then voice chat */
+    gap: 15px;
+  }
+
+  /* Make voice chat smaller in sidebar */
+  .voice-chat-wrapper .video-container {
+    height: 180px;
+  }
+
+  .game-content-inner {
+    flex: 1;
+    flex-direction: column;
+    gap: 2vh;
   }
 
   .game-board {
     flex: 1;
-    min-width: 60%;
+    min-width: auto;
   }
 
   .game-sidebar {
-    width: 35%;
-    max-width: 350px;
+    width: 280px;
+    min-width: 250px;
   }
 
   .turn-order-list {
     justify-content: flex-start;
+  }
+}
+
+@media (min-width: 1200px) {
+  .game-sidebar-left {
+    width: 320px;
+  }
+
+  .game-sidebar {
+    width: 300px;
   }
 }
