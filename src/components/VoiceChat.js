@@ -8,16 +8,31 @@ import './VoiceChat.css';
  */
 const VoiceChat = ({ roomUrl, playerName, onError }) => {
   const [error, setError] = useState(null);
+  const [containerReady, setContainerReady] = useState(false);
 
   // Use ref to track if we're currently cleaning up to prevent re-initialization
   const isCleaningUpRef = useRef(false);
   const frameRef = useRef(null);
   const videoContainerRef = useRef(null);
 
+  // Callback ref to detect when the container is mounted
+  const setVideoContainerRef = (node) => {
+    videoContainerRef.current = node;
+    if (node && !containerReady) {
+      setContainerReady(true);
+    }
+  };
+
   // Initialize Daily call frame
   useEffect(() => {
     if (!roomUrl) {
       console.log('[VoiceChat] No room URL provided');
+      return;
+    }
+
+    // Wait for the container ref to be available
+    if (!videoContainerRef.current) {
+      console.log('[VoiceChat] Video container not ready yet');
       return;
     }
 
@@ -110,8 +125,8 @@ const VoiceChat = ({ roomUrl, playerName, onError }) => {
         isCleaningUpRef.current = false;
       }
     };
-    // Only depend on the actual props, not the callbacks
-  }, [roomUrl, playerName, onError]);
+    // Depend on containerReady to re-run when container is mounted
+  }, [roomUrl, playerName, onError, containerReady]);
 
   if (error) {
     return (
@@ -139,7 +154,7 @@ const VoiceChat = ({ roomUrl, playerName, onError }) => {
   return (
     <div className="voice-chat-container">
       {/* Video container - Daily.co iframe will be embedded here */}
-      <div className="video-container" ref={videoContainerRef}>
+      <div className="video-container" ref={setVideoContainerRef}>
         {/* Daily.co iframe will be inserted here */}
       </div>
     </div>
