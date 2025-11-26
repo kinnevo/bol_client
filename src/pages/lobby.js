@@ -8,6 +8,7 @@ import { checkBrowserSession, setupLogoutListener, clearBrowserSession, startSes
 
 const LobbyPage = () => {
   const [playerName, setPlayerName] = useState('');
+  const [playerId, setPlayerId] = useState('');
   const [rooms, setRooms] = useState([]);
   const [players, setPlayers] = useState([]);
   const [showCreateRoom, setShowCreateRoom] = useState(false);
@@ -15,7 +16,7 @@ const LobbyPage = () => {
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const navigate = useNavigate();
-  
+
   const { socket, isConnected, disconnect } = useSocket();
 
   useEffect(() => {
@@ -79,8 +80,13 @@ const LobbyPage = () => {
 
       // Listen for lobby events
       socket.on('lobby-joined', (data) => {
-        console.log('✅ Lobby joined, received rooms:', data.rooms.length);
+        console.log('✅ Lobby joined, received rooms:', data.rooms.length, 'playerId:', data.playerId);
         setRooms(data.rooms);
+        if (data.playerId) {
+          setPlayerId(data.playerId);
+          // Store playerId for later use
+          localStorage.setItem('playerId', data.playerId);
+        }
       });
 
       socket.on('room-list-updated', (updatedRooms) => {
@@ -248,7 +254,7 @@ const LobbyPage = () => {
           </div>
           
           <div className="section-content">
-            <RoomList rooms={rooms} onJoinRoom={handleJoinRoom} />
+            <RoomList rooms={rooms} onJoinRoom={handleJoinRoom} currentPlayerId={playerId} />
           </div>
         </div>
 
