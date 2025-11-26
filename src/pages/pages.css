@@ -212,7 +212,27 @@
 
 .section-content {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Custom scrollbar for section content */
+.section-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.section-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.section-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.section-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .loading {
@@ -1829,38 +1849,49 @@
   .lobby-content {
     grid-template-columns: 1fr;
     height: auto;
+    gap: 15px;
   }
-  
+
+  /* Fixed height sections on mobile */
+  .lobby-section {
+    max-height: 350px;
+  }
+
+  .lobby-section .section-content {
+    max-height: 250px;
+    overflow-y: auto;
+  }
+
   .conversation-game {
     flex-direction: column;
     height: auto;
   }
-  
+
   .lobby-container,
   .game-container {
     padding: 10px;
   }
-  
+
   .lobby-section,
   .game-content {
     padding: 15px;
   }
-  
+
   .reset-actions {
     flex-direction: column;
   }
-  
+
   .modal-content {
     margin: 20px;
     padding: 30px 25px;
     max-width: 95%;
     min-height: 350px;
   }
-  
+
   .modal-title {
     font-size: 24px;
   }
-  
+
   .form-group input,
   .form-group select {
     padding: 14px 16px;

@@ -1018,6 +1018,170 @@
   color: white;
 }
 
+/* Game Summary - Finished Screen */
+.game-summary {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  margin: 30px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.summary-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.threshold-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.final-scoreboard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scoreboard-entry {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.scoreboard-entry.winner {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 193, 7, 0.05) 100%);
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+.entry-rank {
+  font-size: 20px;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 8px;
+}
+
+.scoreboard-entry.winner .entry-rank {
+  font-size: 24px;
+}
+
+.entry-player {
+  margin-bottom: 10px;
+}
+
+.entry-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bot-tag {
+  font-size: 14px;
+}
+
+.entry-points {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.point-breakdown {
+  display: flex;
+  gap: 20px;
+}
+
+.entry-points .point-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.entry-points .point-icon {
+  font-size: 18px;
+}
+
+.entry-points .point-value {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.entry-points .point-item.connection .point-value {
+  color: #e74c3c;
+}
+
+.entry-points .point-item.wisdom .point-value {
+  color: #f39c12;
+}
+
+.total-score {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.total-score .total-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #333;
+}
+
+.total-score .total-divider {
+  font-size: 16px;
+  color: #999;
+  margin: 0 2px;
+}
+
+.total-score .total-threshold {
+  font-size: 14px;
+  color: #888;
+}
+
+.entry-progress {
+  margin-top: 5px;
+}
+
+.progress-track {
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #ff6b9d 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.scoreboard-entry.winner .progress-fill {
+  background: linear-gradient(90deg, #ffd700 0%, #ffb700 50%, #ffa500 100%);
+}
+
+/* Old standings styles - keeping for backwards compatibility */
 .final-standings {
   background: white;
   border-radius: 15px;

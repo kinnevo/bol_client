@@ -392,20 +392,52 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
               </div>
             </div>
 
-            <div className="final-standings">
-              <h3>Final Standings</h3>
-              {gameWinner.standings && gameWinner.standings.map((player, index) => (
-                <div key={player.playerId} className={`standing-row ${index === 0 ? 'winner' : ''}`}>
-                  <span className="standing-rank">#{index + 1}</span>
-                  <span className="standing-name">
-                    {player.playerName}
-                    {player.isBot && ' 🤖'}
-                  </span>
-                  <span className="standing-points">
-                    ❤️ {player.connection} | 💡 {player.wisdom} | Total: {player.total}
-                  </span>
-                </div>
-              ))}
+            <div className="game-summary">
+              <div className="summary-header">
+                <h3>Game Summary</h3>
+                <span className="threshold-info">Goal: {pointThreshold} points</span>
+              </div>
+
+              <div className="final-scoreboard">
+                {gameWinner.standings && gameWinner.standings.map((player, index) => (
+                  <div key={player.playerId} className={`scoreboard-entry ${index === 0 ? 'winner' : ''}`}>
+                    <div className="entry-rank">
+                      {index === 0 ? '👑' : `#${index + 1}`}
+                    </div>
+                    <div className="entry-player">
+                      <span className="entry-name">
+                        {player.playerName}
+                        {player.isBot && <span className="bot-tag">🤖</span>}
+                      </span>
+                    </div>
+                    <div className="entry-points">
+                      <div className="point-breakdown">
+                        <span className="point-item connection">
+                          <span className="point-icon">❤️</span>
+                          <span className="point-value">{player.connection}</span>
+                        </span>
+                        <span className="point-item wisdom">
+                          <span className="point-icon">💡</span>
+                          <span className="point-value">{player.wisdom}</span>
+                        </span>
+                      </div>
+                      <div className="total-score">
+                        <span className="total-value">{player.total}</span>
+                        <span className="total-divider">/</span>
+                        <span className="total-threshold">{pointThreshold}</span>
+                      </div>
+                    </div>
+                    <div className="entry-progress">
+                      <div className="progress-track">
+                        <div
+                          className="progress-fill"
+                          style={{ width: `${Math.min((player.total / pointThreshold) * 100, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <button
