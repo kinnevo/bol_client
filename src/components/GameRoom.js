@@ -8,7 +8,6 @@ import VotingPanel from './VotingPanel';
 
 const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket }) => {
   const [gameData, setGameData] = useState(null);
-  const [message, setMessage] = useState('');
   const [addingBot, setAddingBot] = useState(false);
   const [botsAvailable, setBotsAvailable] = useState(false);
   const [turnOrder, setTurnOrder] = useState([]);
