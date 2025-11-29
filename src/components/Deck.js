@@ -26,12 +26,11 @@ const Deck = ({ deckSize, onDrawCard, isPlayerTurn, disabled }) => {
         >
           <div className="deck-card-back">
             <div className="deck-card-pattern">
-              <div className="deck-circle"></div>
-              <div className="deck-lines">
-                <div className="line"></div>
-                <div className="line"></div>
-                <div className="line"></div>
-              </div>
+              <img
+                src="/logo.png"
+                alt="Bridges of Life"
+                className="deck-card-logo"
+              />
             </div>
           </div>
         </div>
