@@ -109,14 +109,13 @@
 }
 
 .deck-hint {
-  background: linear-gradient(135deg, #7d5a3c 0%, #4a3728 100%);
+  background: #5c4a3a;
   color: white;
   padding: 10px 20px;
   border-radius: 20px;
   font-size: 14px;
   font-weight: 500;
   animation: pulse 2s ease-in-out infinite;
-  box-shadow: 0 4px 8px rgba(125, 90, 60, 0.3);
 }
 
 @keyframes pulse {
