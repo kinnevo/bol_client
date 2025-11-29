@@ -36,10 +36,10 @@
 }
 
 .turn-order-item.current {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
-  border-color: #667eea;
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  border-color: #5a7a4a;
+  box-shadow: 0 4px 8px rgba(90, 122, 74, 0.3);
 }
 
 .turn-order-item.bot {
@@ -80,7 +80,7 @@
 }
 
 .turn-info.my-turn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -89,11 +89,11 @@
 
   0%,
   100% {
-    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 8px rgba(90, 122, 74, 0.3);
   }
 
   50% {
-    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 6px 12px rgba(90, 122, 74, 0.5);
   }
 }
 
@@ -138,7 +138,7 @@
 }
 
 .next-turn-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   border: none;
   padding: 2vh 6vw;
@@ -147,13 +147,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 8px rgba(90, 122, 74, 0.3);
   white-space: nowrap;
 }
 
 .next-turn-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 12px rgba(90, 122, 74, 0.4);
 }
 
 .next-turn-btn:active {
@@ -169,9 +169,9 @@
 .game-instructions {
   text-align: center;
   padding: 3vh 4vw;
-  background: rgba(102, 126, 234, 0.05);
+  background: rgba(90, 122, 74, 0.05);
   border-radius: 12px;
-  border: 2px dashed rgba(102, 126, 234, 0.3);
+  border: 2px dashed rgba(90, 122, 74, 0.3);
   margin: 2vh auto;
   max-width: 90vw;
 }
@@ -179,7 +179,7 @@
 .game-instructions p {
   margin: 0;
   font-size: clamp(14px, 3vw, 18px);
-  color: #667eea;
+  color: #5a7a4a;
   font-weight: 500;
 }
 
@@ -216,13 +216,13 @@
 .bot-controls {
   margin-top: 30px;
   padding: 20px;
-  background: rgba(102, 126, 234, 0.05);
+  background: rgba(90, 122, 74, 0.05);
   border-radius: 12px;
-  border: 2px dashed rgba(102, 126, 234, 0.3);
+  border: 2px dashed rgba(90, 122, 74, 0.3);
 }
 
 .add-bot-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -236,7 +236,7 @@
 
 .add-bot-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 8px rgba(90, 122, 74, 0.3);
 }
 
 .add-bot-button:disabled {
@@ -389,7 +389,7 @@
   width: clamp(50px, 12vw, 60px);
   height: clamp(50px, 12vw, 60px);
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   display: flex;
   align-items: center;
@@ -428,7 +428,7 @@
   background: #f0f4ff;
   padding: 10px;
   border-radius: 10px;
-  border: 2px dashed #667eea;
+  border: 2px dashed #5a7a4a;
 }
 
 .waiting-player.bot-player .player-avatar {
@@ -607,7 +607,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   display: flex;
   align-items: center;
@@ -643,7 +643,7 @@
 
 .action-btn {
   padding: 10px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   border: none;
   border-radius: 6px;
@@ -749,7 +749,7 @@
 
 .return-button {
   padding: 2vh 5vw;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   border: none;
   border-radius: 6px;
@@ -794,11 +794,11 @@
   font-size: 16px;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
 }
 
 .phase-badge.drawing {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
 }
 
 .phase-badge.talking {
@@ -906,10 +906,7 @@
   display: block;
   font-size: 22px;
   font-weight: 700;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #5a7a4a;
   margin-bottom: 5px;
 }
 
@@ -998,7 +995,7 @@
 }
 
 .winner-announcement {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   padding: 20px 40px;
   border-radius: 15px;
   display: inline-block;
@@ -1046,7 +1043,7 @@
 }
 
 .threshold-info {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   padding: 6px 12px;
   border-radius: 20px;
@@ -1076,7 +1073,7 @@
 .entry-rank {
   font-size: 20px;
   font-weight: 700;
-  color: #667eea;
+  color: #5a7a4a;
   margin-bottom: 8px;
 }
 
@@ -1172,7 +1169,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #ff6b9d 100%);
+  background: #5a7a4a;
   border-radius: 3px;
   transition: width 0.5s ease;
 }
@@ -1214,7 +1211,7 @@
 .standing-rank {
   font-weight: 700;
   font-size: 18px;
-  color: #667eea;
+  color: #5a7a4a;
   min-width: 40px;
 }
 

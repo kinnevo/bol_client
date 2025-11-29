@@ -1,6 +1,6 @@
 import "./pages.css";
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import useSocket from '../hooks/useSocket';
 import PlayerList from '../components/PlayerList';
 import RoomList from '../components/RoomList';
@@ -229,9 +229,14 @@ const LobbyPage = () => {
       <header className="lobby-header">
         <div className="lobby-title">
           <h1>Game Lobby</h1>
-          <button onClick={handleLogout} className="logout-button">
-            Logout
-          </button>
+          <div className="header-actions">
+            <Link to="/profile" className="profile-button">
+              Profile
+            </Link>
+            <button onClick={handleLogout} className="logout-button">
+              Logout
+            </button>
+          </div>
         </div>
         <div className="welcome-info">
           <span className="welcome-message">Welcome, {playerName}!</span>

@@ -7,6 +7,7 @@ import RegisterPage from './pages/Register';
 import LobbyPage from './pages/lobby';
 import GamePage from './pages/game';
 import ResetPage from './pages/reset';
+import ProfilePage from './pages/Profile';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -18,6 +19,7 @@ root.render(
         <Route path="/lobby" element={<LobbyPage />} />
         <Route path="/game/:roomId" element={<GamePage />} />
         <Route path="/reset" element={<ResetPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>
   </React.StrictMode>

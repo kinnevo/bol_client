@@ -23,15 +23,11 @@ const Card = ({ card, isFlipped, onFlipComplete }) => {
         {/* Card Back */}
         <div className="card-face card-back">
           <div className="card-back-pattern">
-            {/* Placeholder for future card back image */}
-            <div className="card-back-design">
-              <div className="card-back-circle"></div>
-              <div className="card-back-lines">
-                <div className="line"></div>
-                <div className="line"></div>
-                <div className="line"></div>
-              </div>
-            </div>
+            <img
+              src="/logo.png"
+              alt="Bridges of Life"
+              className="card-back-logo"
+            />
           </div>
         </div>
 
