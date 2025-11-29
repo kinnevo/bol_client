@@ -82,10 +82,7 @@
 .speaker-name {
   font-size: 22px;
   font-weight: 700;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #5a7a4a;
 }
 
 .voting-prompt {
@@ -178,8 +175,8 @@
 .spinner {
   width: 50px;
   height: 50px;
-  border: 4px solid rgba(102, 126, 234, 0.2);
-  border-top-color: #667eea;
+  border: 4px solid rgba(90, 122, 74, 0.2);
+  border-top-color: #5a7a4a;
   border-radius: 50%;
   margin: 0 auto;
   animation: spin 1s linear infinite;
@@ -234,7 +231,7 @@
 
 .vote-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: #5a7a4a;
   border-radius: 4px;
   transition: width 0.3s ease;
 }
