@@ -113,7 +113,7 @@
 
 .join-button {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   border: none;
   border-radius: 6px;
@@ -124,8 +124,8 @@
 }
 
 .join-button:hover:not(.disabled) {
+  background: #4a6a3a;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
 }
 
 .join-button.disabled {
@@ -157,7 +157,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #5a7a4a;
   color: white;
   display: flex;
   align-items: center;
