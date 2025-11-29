@@ -62,7 +62,7 @@
 }
 
 .login-button {
-  background: #5c4a3a;
+  background: #5a7a4a;
   color: white;
   border: none;
   padding: 14px 24px;
@@ -74,7 +74,7 @@
 }
 
 .login-button:hover {
-  background: #4a3728;
+  background: #4a6a3a;
   transform: translateY(-2px);
 }
 
@@ -769,7 +769,7 @@
 }
 
 .send-btn {
-  background: #5c4a3a;
+  background: #5a7a4a;
   color: white;
   border: none;
   padding: 14px 24px;
@@ -782,7 +782,7 @@
 }
 
 .send-btn:hover:not(:disabled) {
-  background: #4a3728;
+  background: #4a6a3a;
   transform: translateY(-2px);
 }
 
@@ -1637,12 +1637,12 @@
 }
 
 .reset-button.primary {
-  background: #5c4a3a;
+  background: #5a7a4a;
   color: white;
 }
 
 .reset-button.primary:hover {
-  background: #4a3728;
+  background: #4a6a3a;
 }
 
 .reset-button.secondary {
@@ -1810,12 +1810,12 @@
 }
 
 .modal-button.primary {
-  background: #5c4a3a;
+  background: #5a7a4a;
   color: white;
 }
 
 .modal-button.primary:hover {
-  background: #4a3728;
+  background: #4a6a3a;
   transform: translateY(-2px);
 }
 
@@ -1967,7 +1967,7 @@
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: #5c4a3a;
+  background: #5a7a4a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2024,7 +2024,7 @@
 }
 
 .edit-profile-button {
-  background: #5c4a3a;
+  background: #5a7a4a;
   color: white;
   border: none;
   padding: 14px 40px;
@@ -2036,7 +2036,7 @@
 }
 
 .edit-profile-button:hover {
-  background: #4a3728;
+  background: #4a6a3a;
   transform: translateY(-2px);
 }
 
@@ -2153,7 +2153,7 @@
 }
 
 .profile-button {
-  background: #5c4a3a;
+  background: #5a7a4a;
   color: white;
   text-decoration: none;
   padding: 8px 16px;
@@ -2164,7 +2164,7 @@
 }
 
 .profile-button:hover {
-  background: #4a3728;
+  background: #4a6a3a;
   transform: translateY(-1px);
 }
 
