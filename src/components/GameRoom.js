@@ -16,6 +16,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const [drawnCard, setDrawnCard] = useState(null);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [voiceChatUrl, setVoiceChatUrl] = useState(null);
+  const [voiceChatToken, setVoiceChatToken] = useState(null);
 
   // New voting system state
   const [gamePhase, setGamePhase] = useState('drawing');
@@ -33,13 +34,19 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     setBotsAvailable(botsEnabled);
   }, []);
 
-  // Initialize voice chat URL from room data (for reconnection after page reload)
+  // Initialize voice chat URL and token from room data (for reconnection after page reload)
   useEffect(() => {
     if (room && room.voiceChat && room.voiceChat.url) {
       console.log('🎙️ Initializing voice chat from room data:', room.voiceChat.url);
       setVoiceChatUrl(room.voiceChat.url);
+
+      // Set meeting token if available for this player
+      if (room.voiceChat.tokens && room.voiceChat.tokens[playerId]) {
+        console.log('🎙️ Meeting token found for player:', playerId);
+        setVoiceChatToken(room.voiceChat.tokens[playerId]);
+      }
     }
-  }, [room]);
+  }, [room, playerId]);
 
   useEffect(() => {
     if (!socket) return;
@@ -59,11 +66,19 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       if (data.playerPoints) setPlayerPoints(data.playerPoints);
       if (data.pointThreshold) setPointThreshold(data.pointThreshold);
 
-      // Set voice chat URL if available
+      // Set voice chat URL and token if available
       console.log('🎙️ Voice chat data:', data.voiceChat);
       if (data.voiceChat && data.voiceChat.url) {
         console.log('🎙️ Voice chat URL received:', data.voiceChat.url);
         setVoiceChatUrl(data.voiceChat.url);
+
+        // Set meeting token if available for this player
+        if (data.voiceChat.tokens && data.voiceChat.tokens[playerId]) {
+          console.log('🎙️ Meeting token received for player:', playerId);
+          setVoiceChatToken(data.voiceChat.tokens[playerId]);
+        } else {
+          console.warn('⚠️ No meeting token available for player:', playerId);
+        }
       } else {
         console.warn('⚠️ No voice chat URL in game-started event');
       }
@@ -458,7 +473,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
               <VoiceChat
                 roomUrl={voiceChatUrl}
                 playerName={playerName}
-                playerId={playerId}
+                meetingToken={voiceChatToken}
                 onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
               />
             </div>
