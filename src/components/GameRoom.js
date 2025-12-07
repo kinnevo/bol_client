@@ -5,6 +5,7 @@ import Card from './Card';
 import VoiceChat from './VoiceChat';
 import ScoreBoard from './ScoreBoard';
 import VotingPanel from './VotingPanel';
+import GameSummaryScreen from './GameSummaryScreen';
 
 const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket }) => {
   const [gameData, setGameData] = useState(null);
@@ -16,6 +17,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const [drawnCard, setDrawnCard] = useState(null);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [voiceChatUrl, setVoiceChatUrl] = useState(null);
+  const [voiceChatToken, setVoiceChatToken] = useState(null);
 
   // New voting system state
   const [gamePhase, setGamePhase] = useState('drawing');
@@ -27,19 +29,32 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const [votingResults, setVotingResults] = useState(null);
   const [gameWinner, setGameWinner] = useState(null);
 
+  // AI Summary state
+  const [playerSummary, setPlayerSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState(null);
+  const [showSummaryScreen, setShowSummaryScreen] = useState(false);
+  const [summaryTransitionTimer, setSummaryTransitionTimer] = useState(null);
+
   useEffect(() => {
     // Check if bots are available from localStorage
     const botsEnabled = localStorage.getItem('botsAvailable') === 'true';
     setBotsAvailable(botsEnabled);
   }, []);
 
-  // Initialize voice chat URL from room data (for reconnection after page reload)
+  // Initialize voice chat URL and token from room data (for reconnection after page reload)
   useEffect(() => {
     if (room && room.voiceChat && room.voiceChat.url) {
       console.log('🎙️ Initializing voice chat from room data:', room.voiceChat.url);
       setVoiceChatUrl(room.voiceChat.url);
+
+      // Set meeting token if available for this player
+      if (room.voiceChat.tokens && room.voiceChat.tokens[playerId]) {
+        console.log('🎙️ Meeting token found for player:', playerId);
+        setVoiceChatToken(room.voiceChat.tokens[playerId]);
+      }
     }
-  }, [room]);
+  }, [room, playerId]);
 
   useEffect(() => {
     if (!socket) return;
@@ -59,11 +74,19 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       if (data.playerPoints) setPlayerPoints(data.playerPoints);
       if (data.pointThreshold) setPointThreshold(data.pointThreshold);
 
-      // Set voice chat URL if available
+      // Set voice chat URL and token if available
       console.log('🎙️ Voice chat data:', data.voiceChat);
       if (data.voiceChat && data.voiceChat.url) {
         console.log('🎙️ Voice chat URL received:', data.voiceChat.url);
         setVoiceChatUrl(data.voiceChat.url);
+
+        // Set meeting token if available for this player
+        if (data.voiceChat.tokens && data.voiceChat.tokens[playerId]) {
+          console.log('🎙️ Meeting token received for player:', playerId);
+          setVoiceChatToken(data.voiceChat.tokens[playerId]);
+        } else {
+          console.warn('⚠️ No meeting token available for player:', playerId);
+        }
       } else {
         console.warn('⚠️ No voice chat URL in game-started event');
       }
@@ -143,6 +166,39 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       });
     };
 
+    // Listen for transcripts ready (start loading summaries)
+    const handleTranscriptsReady = (data) => {
+      console.log('📝 Transcripts ready:', data);
+      setSummaryLoading(true);
+    };
+
+    // Listen for player summaries ready
+    const handlePlayerSummariesReady = (data) => {
+      console.log('✨ Player summaries ready:', data);
+      const mySummary = data.summaries[playerId];
+      if (mySummary) {
+        setPlayerSummary(mySummary);
+        setSummaryLoading(false);
+
+        // Auto-transition to summary screen after 3 seconds
+        const timer = setTimeout(() => {
+          setShowSummaryScreen(true);
+        }, 3000);
+        setSummaryTransitionTimer(timer);
+      } else {
+        console.warn('No summary found for current player');
+        setSummaryError('No summary available for your session');
+        setSummaryLoading(false);
+      }
+    };
+
+    // Listen for player summaries error
+    const handlePlayerSummariesError = (data) => {
+      console.error('❌ Player summaries error:', data);
+      setSummaryError(data.message || 'Failed to generate AI summaries');
+      setSummaryLoading(false);
+    };
+
     socket.on('game-started', handleGameStarted);
     socket.on('card-drawn', handleCardDrawn);
     socket.on('turn-changed', handleTurnChanged);
@@ -150,6 +206,9 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     socket.on('vote-count-updated', handleVoteCountUpdated);
     socket.on('voting-results', handleVotingResults);
     socket.on('game-ended', handleGameEnded);
+    socket.on('transcripts-ready', handleTranscriptsReady);
+    socket.on('player-summaries-ready', handlePlayerSummariesReady);
+    socket.on('player-summaries-error', handlePlayerSummariesError);
 
     return () => {
       socket.off('game-started', handleGameStarted);
@@ -159,8 +218,16 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       socket.off('vote-count-updated', handleVoteCountUpdated);
       socket.off('voting-results', handleVotingResults);
       socket.off('game-ended', handleGameEnded);
+      socket.off('transcripts-ready', handleTranscriptsReady);
+      socket.off('player-summaries-ready', handlePlayerSummariesReady);
+      socket.off('player-summaries-error', handlePlayerSummariesError);
+
+      // Clean up timer if component unmounts
+      if (summaryTransitionTimer) {
+        clearTimeout(summaryTransitionTimer);
+      }
     };
-  }, [socket]);
+  }, [socket, playerId, summaryTransitionTimer]);
 
   // Initialize turn order from room data if game is already playing
   useEffect(() => {
@@ -371,8 +438,54 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
 
     // Check if game has ended
     if (gamePhase === 'finished' && gameWinner) {
+      // Show AI summary screen if available
+      if (showSummaryScreen && playerSummary) {
+        return (
+          <GameSummaryScreen
+            playerSummary={playerSummary}
+            playerName={playerName}
+            onReturnToLobby={() => handleAction('return-to-lobby')}
+          />
+        );
+      }
+
+      // Otherwise show leaderboard with loading/ready banners
       return (
         <div className="game-room finished">
+          {/* Loading banner */}
+          {summaryLoading && (
+            <div className="loading-banner">
+              <span className="loading-icon">✨</span>
+              <span>Generating personalized insights...</span>
+            </div>
+          )}
+
+          {/* Ready banner */}
+          {playerSummary && !showSummaryScreen && (
+            <div className="ready-banner">
+              <span className="ready-icon">🎉</span>
+              <span className="ready-text">AI Insights Ready!</span>
+              <button
+                onClick={() => {
+                  clearTimeout(summaryTransitionTimer);
+                  setShowSummaryScreen(true);
+                }}
+                className="view-now-button"
+              >
+                View Now
+              </button>
+              <span className="countdown-text">Auto-showing in 3s...</span>
+            </div>
+          )}
+
+          {/* Error banner */}
+          {summaryError && !playerSummary && (
+            <div className="error-banner">
+              <span className="error-icon">⚠️</span>
+              <span>{summaryError}</span>
+            </div>
+          )}
+
           <div className="finished-content">
             <div className="winner-celebration">
               <div className="trophy-icon">🏆</div>
@@ -458,7 +571,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
               <VoiceChat
                 roomUrl={voiceChatUrl}
                 playerName={playerName}
-                playerId={playerId}
+                meetingToken={voiceChatToken}
                 onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
               />
             </div>

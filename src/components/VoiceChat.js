@@ -6,7 +6,7 @@ import './VoiceChat.css';
  * VoiceChat Component
  * Manages Daily.co voice chat integration for the game
  */
-const VoiceChat = ({ roomUrl, playerName, onError }) => {
+const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
   const [error, setError] = useState(null);
   const [containerReady, setContainerReady] = useState(false);
 
@@ -99,12 +99,22 @@ const VoiceChat = ({ roomUrl, playerName, onError }) => {
       frame.on('error', handleError);
 
       try {
-        // Join the room with only supported Daily.co properties
-        await frame.join({
+        // Join the room with meeting token for proper participant ID mapping
+        const joinConfig = {
           url: roomUrl,
-          userName: playerName,
-          // Note: user_id is not supported in join() - it should be set via meeting tokens
-        });
+        };
+
+        // If we have a meeting token, use it (recommended for proper participant ID mapping)
+        // Otherwise fall back to URL join with userName
+        if (meetingToken) {
+          joinConfig.token = meetingToken;
+          console.log('[VoiceChat] Joining with meeting token for proper ID mapping');
+        } else {
+          joinConfig.userName = playerName;
+          console.log('[VoiceChat] Joining with userName (no token available)');
+        }
+
+        await frame.join(joinConfig);
 
         if (isCancelled) return;
 
@@ -158,7 +168,7 @@ const VoiceChat = ({ roomUrl, playerName, onError }) => {
       }
     };
     // Depend on containerReady to re-run when container is mounted
-  }, [roomUrl, playerName, onError, containerReady]);
+  }, [roomUrl, playerName, meetingToken, onError, containerReady]);
 
   if (error) {
     return (
