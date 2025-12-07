@@ -1,0 +1,345 @@
+/* Game Summary Screen - Philosophical, warm aesthetic */
+
+.game-summary-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Loading State */
+.game-summary-screen.loading {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.loading-content {
+  text-align: center;
+  color: white;
+}
+
+.loading-spinner {
+  font-size: 64px;
+  animation: pulse 2s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+}
+
+.loading-content h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.loading-content p {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Main Container */
+.summary-container {
+  max-width: 900px;
+  width: 100%;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: slideUp 0.8s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.summary-header {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  padding: 48px 40px;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-decoration {
+  font-size: 48px;
+  margin-bottom: 12px;
+  animation: sparkle 3s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+}
+
+.summary-title {
+  font-size: 42px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.5px;
+}
+
+.player-name-display {
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0 0 16px 0;
+  opacity: 0.95;
+}
+
+.header-subtitle {
+  font-size: 16px;
+  opacity: 0.9;
+  font-style: italic;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Narrative Section */
+.summary-narrative {
+  padding: 40px;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.narrative-content {
+  font-size: 20px;
+  line-height: 1.8;
+  color: #2d3748;
+  text-align: center;
+  font-weight: 500;
+  font-style: italic;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Insight Sections Container */
+.summary-sections {
+  padding: 40px;
+  background: #f7fafc;
+}
+
+.summary-section {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: revealSection 0.6s ease-out backwards;
+}
+
+.summary-section:nth-child(1) { animation-delay: 0.1s; }
+.summary-section:nth-child(2) { animation-delay: 0.2s; }
+.summary-section:nth-child(3) { animation-delay: 0.3s; }
+.summary-section:nth-child(4) { animation-delay: 0.4s; }
+.summary-section:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes revealSection {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.summary-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.summary-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.section-icon {
+  font-size: 32px;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+/* Section Items */
+.section-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.section-item {
+  font-size: 17px;
+  line-height: 1.7;
+  color: #4a5568;
+  margin-bottom: 14px;
+  padding-left: 28px;
+  position: relative;
+}
+
+.section-item:last-child {
+  margin-bottom: 0;
+}
+
+.section-item::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #667eea;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Actions */
+.summary-actions {
+  padding: 40px;
+  text-align: center;
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.return-lobby-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px 48px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.return-lobby-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.return-lobby-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .game-summary-screen {
+    padding: 20px 10px;
+  }
+
+  .summary-container {
+    border-radius: 16px;
+  }
+
+  .summary-header {
+    padding: 32px 24px;
+  }
+
+  .summary-title {
+    font-size: 32px;
+  }
+
+  .player-name-display {
+    font-size: 20px;
+  }
+
+  .header-subtitle {
+    font-size: 14px;
+  }
+
+  .summary-narrative {
+    padding: 24px;
+  }
+
+  .narrative-content {
+    font-size: 17px;
+  }
+
+  .summary-sections {
+    padding: 24px;
+  }
+
+  .summary-section {
+    padding: 20px 24px;
+  }
+
+  .section-title {
+    font-size: 19px;
+  }
+
+  .section-item {
+    font-size: 15px;
+  }
+
+  .summary-actions {
+    padding: 24px;
+  }
+
+  .return-lobby-button {
+    width: 100%;
+    padding: 14px 32px;
+  }
+}
+
+/* Print Styles (for future PDF export feature) */
+@media print {
+  .game-summary-screen {
+    background: white;
+    padding: 0;
+  }
+
+  .summary-container {
+    box-shadow: none;
+  }
+
+  .return-lobby-button {
+    display: none;
+  }
+}
