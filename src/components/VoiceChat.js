@@ -169,7 +169,9 @@ const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
       }
     };
     // Depend on containerReady to re-run when container is mounted
-  }, [roomUrl, playerName, meetingToken, onError, containerReady]);
+    // Note: onError is intentionally excluded to prevent re-initialization on parent re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomUrl, playerName, meetingToken, containerReady]);
 
   if (error) {
     return (

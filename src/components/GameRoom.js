@@ -36,6 +36,8 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const [showSummaryScreen, setShowSummaryScreen] = useState(false);
   const [summaryTransitionTimer, setSummaryTransitionTimer] = useState(null);
   const [waitingForTranscripts, setWaitingForTranscripts] = useState(false);
+  const [summaryRequested, setSummaryRequested] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   useEffect(() => {
     // Check if bots are available from localStorage
@@ -165,8 +167,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
         winnerName: data.winnerName,
         standings: data.standings
       });
-      // Start showing "waiting for transcripts" indicator
-      setWaitingForTranscripts(true);
+      // Don't auto-start transcript fetching - wait for user to click "End Game & Get Summary"
     };
 
     // Listen for transcripts ready (start loading summaries)
@@ -454,145 +455,111 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     const userIsHost = isHost();
 
     // Check if game has ended - show leaderboard/summary
-    if ((gamePhase === 'finished' || gameState === 'finished') && gameWinner) {
-      // Show AI summary screen if available
-      if (showSummaryScreen && playerSummary) {
-        return (
-          <GameSummaryScreen
-            playerSummary={playerSummary}
-            playerName={playerName}
-            onReturnToLobby={() => handleAction('return-to-lobby')}
-          />
-        );
-      }
+    const isGameFinished = (gamePhase === 'finished' || gameState === 'finished') && gameWinner;
 
-      // Otherwise show leaderboard with loading/ready banners
+    // Show AI summary screen if available and requested
+    if (isGameFinished && showSummaryScreen && playerSummary) {
       return (
-        <div className="game-room finished">
-          {/* Waiting for transcripts banner */}
-          {waitingForTranscripts && !summaryLoading && !playerSummary && !summaryError && (
-            <div className="loading-banner">
-              <span className="loading-icon">🎙️</span>
-              <span>Processing voice transcripts...</span>
-            </div>
-          )}
-
-          {/* Loading AI summaries banner */}
-          {summaryLoading && (
-            <div className="loading-banner">
-              <span className="loading-icon">✨</span>
-              <span>Generating personalized insights...</span>
-            </div>
-          )}
-
-          {/* Ready banner */}
-          {playerSummary && !showSummaryScreen && (
-            <div className="ready-banner">
-              <span className="ready-icon">🎉</span>
-              <span className="ready-text">AI Insights Ready!</span>
-              <button
-                onClick={() => {
-                  clearTimeout(summaryTransitionTimer);
-                  setShowSummaryScreen(true);
-                }}
-                className="view-now-button"
-              >
-                View Now
-              </button>
-              <span className="countdown-text">Auto-showing in 3s...</span>
-            </div>
-          )}
-
-          {/* Error banner */}
-          {summaryError && !playerSummary && (
-            <div className="error-banner">
-              <span className="error-icon">⚠️</span>
-              <span>{summaryError}</span>
-            </div>
-          )}
-
-          <div className="finished-content">
-            <div className="winner-celebration">
-              <div className="trophy-icon">🏆</div>
-              <h2>Game Over!</h2>
-              <div className="winner-announcement">
-                <span className="winner-label">Winner</span>
-                <span className="winner-name">{gameWinner.winnerName}</span>
-              </div>
-            </div>
-
-            <div className="game-summary">
-              <div className="summary-header">
-                <h3>Game Summary</h3>
-                <span className="threshold-info">Goal: {pointThreshold} points</span>
-              </div>
-
-              <div className="final-scoreboard">
-                {gameWinner.standings && gameWinner.standings.map((player, index) => (
-                  <div key={player.playerId} className={`scoreboard-entry ${index === 0 ? 'winner' : ''}`}>
-                    <div className="entry-rank">
-                      {index === 0 ? '👑' : `#${index + 1}`}
-                    </div>
-                    <div className="entry-player">
-                      <span className="entry-name">
-                        {player.playerName}
-                        {player.isBot && <span className="bot-tag">🤖</span>}
-                      </span>
-                    </div>
-                    <div className="entry-points">
-                      <div className="point-breakdown">
-                        <span className="point-item connection">
-                          <span className="point-icon">❤️</span>
-                          <span className="point-value">{player.connection}</span>
-                        </span>
-                        <span className="point-item wisdom">
-                          <span className="point-icon">💡</span>
-                          <span className="point-value">{player.wisdom}</span>
-                        </span>
-                      </div>
-                      <div className="total-score">
-                        <span className="total-value">{player.total}</span>
-                        <span className="total-divider">/</span>
-                        <span className="total-threshold">{pointThreshold}</span>
-                      </div>
-                    </div>
-                    <div className="entry-progress">
-                      <div className="progress-track">
-                        <div
-                          className="progress-fill"
-                          style={{ width: `${Math.min((player.total / pointThreshold) * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleAction('return-to-lobby')}
-              className="return-button"
-            >
-              Return to Lobby
-            </button>
-          </div>
-        </div>
+        <GameSummaryScreen
+          playerSummary={playerSummary}
+          playerName={playerName}
+          onReturnToLobby={() => handleAction('return-to-lobby')}
+        />
       );
     }
 
+    // Handle "End Game & Get Summary" button click
+    const handleGetSummary = () => {
+      setSummaryRequested(true);
+      setWaitingForTranscripts(true);
+      // Emit event to server to start transcript retrieval
+      if (socket && room) {
+        console.log('[GameRoom] Requesting summary for room:', room.id);
+        socket.emit('request-summary', { roomId: room.id });
+      }
+    };
+
+    // Handle player profile click (mock for now)
+    const handlePlayerClick = (player) => {
+      setSelectedPlayer(player);
+      alert(`Player Profile: ${player.playerName}\n\nThis feature is coming soon! You'll be able to view player profiles and add them as friends.`);
+    };
+
+    // Handle Add Friend click (mock for now)
+    const handleAddFriend = (player) => {
+      alert(`Add Friend: ${player.playerName}\n\nFriend request feature coming soon!`);
+    };
+
+    // Handle Play Again
+    const handlePlayAgain = () => {
+      if (socket && room) {
+        console.log('[GameRoom] Requesting play again for room:', room.id);
+        socket.emit('play-again', { roomId: room.id });
+      }
+    };
+
+    // Use a single layout that keeps VoiceChat in the same DOM position
+    // This prevents remounting when game phase changes
     return (
-      <div className="game-room playing">
-        <div className="game-layout">
-          {/* Left Column - ScoreBoard and Voice Chat */}
-          <div className="game-sidebar-left">
-            <ScoreBoard
-              players={turnOrder}
-              playerPoints={playerPoints}
-              pointThreshold={pointThreshold}
-              currentPlayerId={currentPlayerId}
-              turnOrder={turnOrder}
-            />
-            <div className="voice-chat-wrapper">
+      <div className={`game-room ${isGameFinished ? 'finished-with-voice' : 'playing'}`}>
+        {/* Status banners for finished state */}
+        {isGameFinished && summaryRequested && waitingForTranscripts && !summaryLoading && !playerSummary && !summaryError && (
+          <div className="loading-banner">
+            <span className="loading-icon">🎙️</span>
+            <span>Processing voice transcripts...</span>
+          </div>
+        )}
+
+        {isGameFinished && summaryLoading && (
+          <div className="loading-banner">
+            <span className="loading-icon">✨</span>
+            <span>Generating personalized insights...</span>
+          </div>
+        )}
+
+        {isGameFinished && playerSummary && !showSummaryScreen && (
+          <div className="ready-banner">
+            <span className="ready-icon">🎉</span>
+            <span className="ready-text">AI Insights Ready!</span>
+            <button
+              onClick={() => {
+                clearTimeout(summaryTransitionTimer);
+                setShowSummaryScreen(true);
+              }}
+              className="view-now-button"
+            >
+              View Now
+            </button>
+            <span className="countdown-text">Auto-showing in 3s...</span>
+          </div>
+        )}
+
+        {isGameFinished && summaryError && !playerSummary && (
+          <div className="error-banner">
+            <span className="error-icon">⚠️</span>
+            <span>{summaryError}</span>
+          </div>
+        )}
+
+        <div className={isGameFinished ? 'finished-layout' : 'game-layout'}>
+          {/* Left Column - Voice Chat (and ScoreBoard during game) */}
+          <div className={isGameFinished ? 'finished-voice-section' : 'game-sidebar-left'}>
+            {isGameFinished && (
+              <div className="voice-chat-header">
+                <span className="voice-icon">🎙️</span>
+                <span>Say goodbye to your friends!</span>
+              </div>
+            )}
+            {!isGameFinished && (
+              <ScoreBoard
+                players={turnOrder}
+                playerPoints={playerPoints}
+                pointThreshold={pointThreshold}
+                currentPlayerId={currentPlayerId}
+                turnOrder={turnOrder}
+              />
+            )}
+            <div className={`voice-chat-wrapper ${isGameFinished ? 'large' : ''}`}>
               <VoiceChat
                 roomUrl={voiceChatUrl}
                 playerName={playerName}
@@ -602,8 +569,89 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
             </div>
           </div>
 
-          {/* Main Game Area */}
-          <div className="game-content-inner">
+          {/* Right side content - changes based on game state */}
+          {isGameFinished ? (
+            /* Finished: Show game results */
+            <div className="finished-results-section">
+              {/* Winner announcement */}
+              <div className="winner-card">
+                <div className="trophy-icon">🏆</div>
+                <h2>Game Over!</h2>
+                <div className="winner-badge">
+                  <span className="winner-label">Winner</span>
+                  <span className="winner-name">{gameWinner.winnerName}</span>
+                </div>
+              </div>
+
+              {/* Leaderboard */}
+              <div className="leaderboard-card">
+                <div className="leaderboard-header">
+                  <h3>Final Standings</h3>
+                  <span className="goal-badge">Goal: {pointThreshold} pts</span>
+                </div>
+
+                <div className="leaderboard-list">
+                  {gameWinner.standings && gameWinner.standings.map((player, index) => (
+                    <div
+                      key={player.playerId}
+                      className={`leaderboard-entry ${index === 0 ? 'winner' : ''}`}
+                    >
+                      <div className="entry-left" onClick={() => handlePlayerClick(player)}>
+                        <span className="entry-rank">{index === 0 ? '👑' : `#${index + 1}`}</span>
+                        <div className="entry-avatar">
+                          {player.isBot ? '🤖' : player.playerName.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="entry-name">{player.playerName}</span>
+                      </div>
+                      <div className="entry-right">
+                        <span className="entry-points-mini">
+                          <span className="heart">❤️ {player.connection}</span>
+                          <span className="bulb">💡 {player.wisdom}</span>
+                        </span>
+                        <span className="entry-total">{player.total}</span>
+                        {/* Add Friend button for non-bots */}
+                        {!player.isBot && player.playerId !== playerId && (
+                          <button
+                            className="add-friend-inline-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddFriend(player);
+                            }}
+                            title="Add Friend"
+                          >
+                            👤+
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="finished-actions">
+                {!summaryRequested ? (
+                  <button onClick={handleGetSummary} className="get-summary-btn">
+                    <span>✨</span> End Game & Get AI Summary
+                  </button>
+                ) : (
+                  <div className="finished-buttons-row">
+                    <button onClick={handlePlayAgain} className="play-again-btn">
+                      <span>🔄</span> Play Again
+                    </button>
+                    <button
+                      onClick={() => handleAction('return-to-lobby')}
+                      className="return-btn"
+                    >
+                      Return to Lobby
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Playing: Show game content */
+            <div className="game-content-inner">
 
             {/* Game Phase Display */}
             <div className="game-phase-indicator">
@@ -746,31 +794,8 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Right Sidebar - Chat (hidden to encourage voice chat) */}
-          {/*
-          <div className="game-sidebar">
-            <div className="chat-panel">
-              <h4>Chat</h4>
-              <div className="chat-messages">
-                <div className="chat-message system">
-                  Game started! Good luck everyone! 🎮
-                </div>
-              </div>
-              <form onSubmit={handleSendMessage} className="chat-form">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type a message..."
-                  className="chat-input"
-                />
-                <button type="submit" className="send-btn">Send</button>
-              </form>
             </div>
-          </div>
-          */}
+          )}
         </div>
       </div>
     );
