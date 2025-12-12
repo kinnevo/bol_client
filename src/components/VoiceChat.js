@@ -5,14 +5,16 @@ import './VoiceChat.css';
 /**
  * VoiceChat Component
  * Manages Daily.co voice chat integration for the game
+ * Uses createCallObject for auto-join capability (no pre-join screen)
  */
-const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
+const VoiceChat = ({ roomUrl, playerName, meetingToken, onError, onMeetingEnded }) => {
   const [error, setError] = useState(null);
   const [containerReady, setContainerReady] = useState(false);
+  const [meetingEnded, setMeetingEnded] = useState(false);
 
   // Use ref to track if we're currently cleaning up to prevent re-initialization
   const isCleaningUpRef = useRef(false);
-  const frameRef = useRef(null);
+  const callObjectRef = useRef(null);
   const videoContainerRef = useRef(null);
 
   // Callback ref to detect when the container is mounted
@@ -23,7 +25,7 @@ const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
     }
   };
 
-  // Initialize Daily call frame
+  // Initialize Daily call object
   useEffect(() => {
     if (!roomUrl) {
       console.log('[VoiceChat] No room URL provided');
@@ -47,19 +49,17 @@ const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
     let isCancelled = false;
 
     const initializeDaily = async () => {
-      // Prevent duplicate instances - destroy any existing frames first
-      const existingFrame = DailyIframe.getCallInstance();
-      if (existingFrame) {
-        console.log('[VoiceChat] Destroying existing frame before creating new one');
+      // Prevent duplicate instances - destroy any existing call objects first
+      const existingCall = DailyIframe.getCallInstance();
+      if (existingCall) {
+        console.log('[VoiceChat] Destroying existing call before creating new one');
         try {
-          // Try to leave first, then destroy
-          await existingFrame.leave().catch(() => {});
-          await existingFrame.destroy();
-          console.log('[VoiceChat] Existing frame destroyed successfully');
+          await existingCall.leave().catch(() => {});
+          await existingCall.destroy();
+          console.log('[VoiceChat] Existing call destroyed successfully');
         } catch (err) {
-          console.warn('[VoiceChat] Error destroying existing frame:', err);
+          console.warn('[VoiceChat] Error destroying existing call:', err);
         }
-        // Small delay to ensure cleanup is complete
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
@@ -69,64 +69,92 @@ const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
         return;
       }
 
-      // Create Daily call frame - will be embedded in our video container
-      const frame = DailyIframe.createFrame(videoContainerRef.current, {
-        showLeaveButton: false,
-        showFullscreenButton: false,
-        activeSpeakerMode: false,  // Use grid/matrix view by default
-        iframeStyle: {
-          width: '100%',
-          height: '100%',
-          border: '0',
-          borderRadius: '8px',
+      // Create Daily call object (not iframe) for auto-join capability
+      const callObject = DailyIframe.createCallObject({
+        subscribeToTracksAutomatically: true,
+        dailyConfig: {
+          experimentalChromeVideoMuteLightOff: true,
         },
       });
 
       if (isCancelled) {
-        frame.destroy();
+        callObject.destroy();
         return;
       }
 
-      frameRef.current = frame;
+      callObjectRef.current = callObject;
 
       // Event handler for errors
       const handleError = (error) => {
         console.error('[VoiceChat] Daily error:', error);
+        if (error.errorMsg === 'Meeting has ended') {
+          console.log('[VoiceChat] Meeting ended gracefully');
+          setMeetingEnded(true);
+          if (onMeetingEnded) onMeetingEnded();
+          return;
+        }
         setError(error.errorMsg || 'Voice chat error');
         if (onError) onError(error);
       };
 
-      // Set up error event listener
-      frame.on('error', handleError);
+      // Set up event listeners
+      callObject.on('error', handleError);
 
       try {
-        // Join the room with meeting token for proper participant ID mapping
+        // Build join config
         const joinConfig = {
           url: roomUrl,
+          startVideoOff: true,
+          startAudioOff: false,
         };
 
-        // If we have a meeting token, use it (recommended for proper participant ID mapping)
-        // Otherwise fall back to URL join with userName
         if (meetingToken) {
           joinConfig.token = meetingToken;
-          console.log('[VoiceChat] Joining with meeting token for proper ID mapping');
+          console.log('[VoiceChat] Auto-joining with meeting token');
         } else {
           joinConfig.userName = playerName;
-          console.log('[VoiceChat] Joining with userName (no token available)');
+          console.log('[VoiceChat] Auto-joining with userName');
         }
 
-        await frame.join(joinConfig);
+        // Pre-auth to check room access
+        await callObject.preAuth(joinConfig);
+        console.log('[VoiceChat] Pre-auth successful');
 
         if (isCancelled) return;
 
+        // Start camera/mic before joining (this skips the pre-join UI)
+        await callObject.startCamera({
+          startVideoOff: true,
+          startAudioOff: false,
+        });
+        console.log('[VoiceChat] Camera started');
+
+        if (isCancelled) return;
+
+        // Join the call - should auto-join without pre-join screen
+        await callObject.join(joinConfig);
         console.log('[VoiceChat] Successfully joined room');
 
-        // Enable microphone by default, keep video off
-        if (frameRef.current) {
-          frameRef.current.setLocalAudio(true);
-          frameRef.current.setLocalVideo(false);
-          console.log('[VoiceChat] Microphone enabled, video disabled by default');
+        if (isCancelled) return;
+
+        // Now create the iframe and attach it to our container
+        // We need to create a frame that wraps our call object
+        if (videoContainerRef.current) {
+          const iframe = callObject.iframe();
+          if (iframe) {
+            // Style the iframe
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = '0';
+            iframe.style.borderRadius = '8px';
+
+            // Clear container and append iframe
+            videoContainerRef.current.innerHTML = '';
+            videoContainerRef.current.appendChild(iframe);
+            console.log('[VoiceChat] Iframe attached to container');
+          }
         }
+
       } catch (err) {
         console.error('[VoiceChat] Error joining room:', err);
         if (!isCancelled) {
@@ -142,34 +170,31 @@ const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
     return () => {
       isCancelled = true;
       isCleaningUpRef.current = true;
-      const currentFrame = frameRef.current;
+      const currentCall = callObjectRef.current;
 
-      if (currentFrame) {
-        console.log('[VoiceChat] Cleaning up call frame');
-        currentFrame.leave()
+      if (currentCall) {
+        console.log('[VoiceChat] Cleaning up call object');
+        currentCall.leave()
           .then(() => {
-            currentFrame.destroy();
-            console.log('[VoiceChat] Left and destroyed call frame');
+            currentCall.destroy();
+            console.log('[VoiceChat] Left and destroyed call');
           })
           .catch((err) => {
             console.warn('[VoiceChat] Error during cleanup:', err);
-            // Destroy anyway even if leave fails
             try {
-              currentFrame.destroy();
+              currentCall.destroy();
             } catch (destroyErr) {
-              console.warn('[VoiceChat] Error destroying frame:', destroyErr);
+              console.warn('[VoiceChat] Error destroying call:', destroyErr);
             }
           })
           .finally(() => {
-            frameRef.current = null;
+            callObjectRef.current = null;
             isCleaningUpRef.current = false;
           });
       } else {
         isCleaningUpRef.current = false;
       }
     };
-    // Depend on containerReady to re-run when container is mounted
-    // Note: onError is intentionally excluded to prevent re-initialization on parent re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomUrl, playerName, meetingToken, containerReady]);
 
@@ -177,6 +202,23 @@ const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
     return (
       <div className="voice-chat-error">
         <p>Voice chat error: {error}</p>
+      </div>
+    );
+  }
+
+  if (meetingEnded) {
+    return (
+      <div className="voice-chat-container">
+        <div className="voice-chat-ended">
+          <div className="ended-icon">✨</div>
+          <h3>Call Ended</h3>
+          <p>Processing your conversation for AI insights...</p>
+          <div className="processing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -200,7 +242,7 @@ const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
     <div className="voice-chat-container">
       {/* Video container - Daily.co iframe will be embedded here */}
       <div className="video-container" ref={setVideoContainerRef}>
-        {/* Daily.co iframe will be inserted here */}
+        {/* Daily.co iframe will be inserted here after joining */}
       </div>
     </div>
   );

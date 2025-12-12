@@ -758,11 +758,12 @@
 
 .voice-chat-wrapper.large {
   width: 100%;
-  min-height: 200px;
+  min-height: 280px;
 }
 
 .voice-chat-wrapper.large .video-container {
-  height: 200px !important;
+  min-height: 280px !important;
+  height: auto !important;
 }
 
 /* Results Section */
@@ -1079,7 +1080,8 @@
   }
 
   .voice-chat-wrapper.large .video-container {
-    height: 300px !important;
+    min-height: 300px !important;
+    height: auto !important;
   }
 
   .finished-results-section {
@@ -1705,9 +1707,11 @@
     gap: 15px;
   }
 
-  /* Make voice chat smaller in sidebar */
+  /* Make voice chat smaller in sidebar but ensure join button visible */
   .voice-chat-wrapper .video-container {
-    height: 180px;
+    min-height: 220px;
+    height: auto;
+    max-height: 280px;
   }
 
   .game-content-inner {

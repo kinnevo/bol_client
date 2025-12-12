@@ -38,6 +38,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const [waitingForTranscripts, setWaitingForTranscripts] = useState(false);
   const [summaryRequested, setSummaryRequested] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [callEnded, setCallEnded] = useState(false);
 
   useEffect(() => {
     // Check if bots are available from localStorage
@@ -85,6 +86,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       setPlayerSummary(null);
       setSummaryError(null);
       setShowSummaryScreen(false);
+      setCallEnded(false);
       setDrawnCard(null);
       setIsCardFlipped(false);
       setHasVoted(false);
@@ -517,14 +519,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     // This prevents remounting when game phase changes
     return (
       <div className={`game-room ${isGameFinished ? 'finished-with-voice' : 'playing'}`}>
-        {/* Status banners for finished state */}
-        {isGameFinished && summaryRequested && waitingForTranscripts && !summaryLoading && !playerSummary && !summaryError && (
-          <div className="loading-banner">
-            <span className="loading-icon">🎙️</span>
-            <span>Processing voice transcripts...</span>
-          </div>
-        )}
-
+        {/* Status banners for finished state - only show when actively loading summary */}
         {isGameFinished && summaryLoading && (
           <div className="loading-banner">
             <span className="loading-icon">✨</span>
@@ -559,10 +554,16 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
         <div className={isGameFinished ? 'finished-layout' : 'game-layout'}>
           {/* Left Column - Voice Chat (and ScoreBoard during game) */}
           <div className={isGameFinished ? 'finished-voice-section' : 'game-sidebar-left'}>
-            {isGameFinished && (
+            {isGameFinished && !callEnded && (
               <div className="voice-chat-header">
                 <span className="voice-icon">🎙️</span>
                 <span>Say goodbye to your friends!</span>
+              </div>
+            )}
+            {isGameFinished && callEnded && (
+              <div className="voice-chat-header">
+                <span className="voice-icon">✨</span>
+                <span>Generating AI Insights...</span>
               </div>
             )}
             {!isGameFinished && (
@@ -580,6 +581,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
                 playerName={playerName}
                 meetingToken={voiceChatToken}
                 onError={(error) => console.error('[GameRoom] Voice chat error:', error)}
+                onMeetingEnded={() => setCallEnded(true)}
               />
             </div>
           </div>
