@@ -1006,6 +1006,60 @@
   color: white;
 }
 
+/* Buttons Row - 50/50 split */
+.finished-buttons-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.finished-buttons-row .play-again-btn,
+.finished-buttons-row .return-btn {
+  flex: 1;
+  min-width: 0;
+}
+
+.play-again-btn {
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+}
+
+.play-again-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+}
+
+/* Add Friend Inline Button */
+.add-friend-inline-btn {
+  padding: 6px 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.add-friend-inline-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
 /* Desktop Layout for Finished Screen */
 @media (min-width: 769px) {
   .finished-layout {

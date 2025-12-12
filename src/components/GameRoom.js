@@ -77,6 +77,21 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       if (data.playerPoints) setPlayerPoints(data.playerPoints);
       if (data.pointThreshold) setPointThreshold(data.pointThreshold);
 
+      // Reset all summary/finished state for play-again
+      setGameWinner(null);
+      setSummaryRequested(false);
+      setWaitingForTranscripts(false);
+      setSummaryLoading(false);
+      setPlayerSummary(null);
+      setSummaryError(null);
+      setShowSummaryScreen(false);
+      setDrawnCard(null);
+      setIsCardFlipped(false);
+      setHasVoted(false);
+      setVoteCount(0);
+      setVotingState(null);
+      setVotingResults(null);
+
       // Set voice chat URL and token if available
       console.log('🎙️ Voice chat data:', data.voiceChat);
       if (data.voiceChat && data.voiceChat.url) {
