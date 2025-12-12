@@ -73,6 +73,7 @@ const VoiceChat = ({ roomUrl, playerName, meetingToken, onError }) => {
       const frame = DailyIframe.createFrame(videoContainerRef.current, {
         showLeaveButton: false,
         showFullscreenButton: false,
+        activeSpeakerMode: false,  // Use grid/matrix view by default
         iframeStyle: {
           width: '100%',
           height: '100%',
