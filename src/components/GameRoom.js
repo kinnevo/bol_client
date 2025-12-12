@@ -35,6 +35,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
   const [summaryError, setSummaryError] = useState(null);
   const [showSummaryScreen, setShowSummaryScreen] = useState(false);
   const [summaryTransitionTimer, setSummaryTransitionTimer] = useState(null);
+  const [waitingForTranscripts, setWaitingForTranscripts] = useState(false);
 
   useEffect(() => {
     // Check if bots are available from localStorage
@@ -164,11 +165,14 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
         winnerName: data.winnerName,
         standings: data.standings
       });
+      // Start showing "waiting for transcripts" indicator
+      setWaitingForTranscripts(true);
     };
 
     // Listen for transcripts ready (start loading summaries)
     const handleTranscriptsReady = (data) => {
       console.log('📝 Transcripts ready:', data);
+      setWaitingForTranscripts(false);
       setSummaryLoading(true);
     };
 
@@ -199,6 +203,15 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       setSummaryLoading(false);
     };
 
+    // Listen for transcripts error (no voice data available)
+    const handleTranscriptsError = (data) => {
+      console.warn('⚠️ Transcripts error:', data);
+      // Don't show loading anymore, but don't block UI - user can still see leaderboard
+      setWaitingForTranscripts(false);
+      setSummaryLoading(false);
+      setSummaryError(data.message || 'Voice transcripts not available');
+    };
+
     socket.on('game-started', handleGameStarted);
     socket.on('card-drawn', handleCardDrawn);
     socket.on('turn-changed', handleTurnChanged);
@@ -207,6 +220,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     socket.on('voting-results', handleVotingResults);
     socket.on('game-ended', handleGameEnded);
     socket.on('transcripts-ready', handleTranscriptsReady);
+    socket.on('transcripts-error', handleTranscriptsError);
     socket.on('player-summaries-ready', handlePlayerSummariesReady);
     socket.on('player-summaries-error', handlePlayerSummariesError);
 
@@ -219,6 +233,7 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       socket.off('voting-results', handleVotingResults);
       socket.off('game-ended', handleGameEnded);
       socket.off('transcripts-ready', handleTranscriptsReady);
+      socket.off('transcripts-error', handleTranscriptsError);
       socket.off('player-summaries-ready', handlePlayerSummariesReady);
       socket.off('player-summaries-error', handlePlayerSummariesError);
 
@@ -430,14 +445,16 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
     );
   }
 
-  if (gameState === 'playing') {
+  // Show leaderboard and game content for both 'playing' and 'finished' states
+  // This ensures the leaderboard is shown when game ends before falling through to simple finished screen
+  if (gameState === 'playing' || (gameState === 'finished' && gameWinner)) {
     const currentPlayerInfo = getCurrentPlayerInfo();
     const myTurn = isMyTurn();
     const currentIsBot = isCurrentPlayerBot();
     const userIsHost = isHost();
 
-    // Check if game has ended
-    if (gamePhase === 'finished' && gameWinner) {
+    // Check if game has ended - show leaderboard/summary
+    if ((gamePhase === 'finished' || gameState === 'finished') && gameWinner) {
       // Show AI summary screen if available
       if (showSummaryScreen && playerSummary) {
         return (
@@ -452,7 +469,15 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
       // Otherwise show leaderboard with loading/ready banners
       return (
         <div className="game-room finished">
-          {/* Loading banner */}
+          {/* Waiting for transcripts banner */}
+          {waitingForTranscripts && !summaryLoading && !playerSummary && !summaryError && (
+            <div className="loading-banner">
+              <span className="loading-icon">🎙️</span>
+              <span>Processing voice transcripts...</span>
+            </div>
+          )}
+
+          {/* Loading AI summaries banner */}
           {summaryLoading && (
             <div className="loading-banner">
               <span className="loading-icon">✨</span>
