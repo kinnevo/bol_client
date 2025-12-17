@@ -271,13 +271,14 @@ const GamePage = () => {
           <span className="player-count">
             {room.players.length}/{room.maxPlayers} players
           </span>
-          
-          {gameState === 'waiting' && room.players.length >= 2 && (
+
+          {/* Only show Start Game button to the host (room creator) */}
+          {gameState === 'waiting' && room.players.length >= 2 && room.hostId === playerId && (
             <button onClick={handleStartGame} className="start-game-button">
               Start Game
             </button>
           )}
-          
+
           <button onClick={handleLeaveRoom} className="leave-room-button">
             Leave Room
           </button>

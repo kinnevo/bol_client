@@ -455,7 +455,9 @@ const GameRoom = ({ room, gameState, playerName, playerId, onGameAction, socket 
 
           {room.players.length >= 2 && (
             <div className="ready-message">
-              Ready to start! Waiting for host to begin the game.
+              {room.hostId === playerId
+                ? "Ready to start! You're the host - click 'Start Game' above."
+                : "Ready to start! Waiting for host to begin the game."}
             </div>
           )}
         </div>
