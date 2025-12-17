@@ -83,14 +83,18 @@ export const setWindowSession = (userName) => {
 // Clear window session
 export const clearWindowSession = () => {
   const windowId = getWindowId();
-  
+
   localStorage.removeItem(`activeTab_${windowId}`);
   localStorage.removeItem(`activeUser_${windowId}`);
   localStorage.removeItem(`loginTime_${windowId}`);
   localStorage.removeItem('playerName');
   localStorage.removeItem('currentRoom');
-  sessionStorage.clear();
-  
+
+  // Remove only session data from sessionStorage, NOT windowId/tabId
+  // DO NOT call sessionStorage.clear() - it destroys windowId and tabId
+  // which breaks session continuity after game ends
+  sessionStorage.removeItem('playerName');
+
   console.log('🔓 Window session cleared for window:', windowId);
 };
 
